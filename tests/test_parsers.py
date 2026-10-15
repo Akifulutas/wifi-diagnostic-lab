@@ -71,7 +71,36 @@ round-trip min/avg/max/stddev = 2.451/20.745/42.600/17.920 ms
 """
 
 
+MOCK_IPERF_UDP_JSON = """{
+  "start": {
+    "test_start": {
+      "protocol": "UDP",
+      "num_streams": 1,
+      "reverse": 0
+    }
+  },
+  "end": {
+    "sum": {
+      "bits_per_second": 150000000.0,
+      "seconds": 10.0,
+      "jitter_ms": 1.245,
+      "lost_packets": 15,
+      "packets": 12500,
+      "lost_percent": 0.12
+    }
+  }
+}"""
+
+
 class TestParsers(unittest.TestCase):
+    def test_parse_iperf_udp(self):
+        res = parse_iperf_json(MOCK_IPERF_UDP_JSON, expected_direction="upload")
+        self.assertEqual(res.protocol, "UDP")
+        self.assertAlmostEqual(res.receiver_mbps, 150.0)
+        self.assertAlmostEqual(res.jitter_ms, 1.245)
+        self.assertEqual(res.lost_packets, 15)
+        self.assertEqual(res.total_packets, 12500)
+        self.assertAlmostEqual(res.loss_percent, 0.12)
     def test_parse_iperf_upload(self):
         res = parse_iperf_json(MOCK_IPERF_UPLOAD_JSON, expected_direction="upload")
         self.assertEqual(res.protocol, "TCP")

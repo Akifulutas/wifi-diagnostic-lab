@@ -43,6 +43,16 @@ def build_parser() -> argparse.ArgumentParser:
     report_parser.add_argument("--figures", "-f", type=Path, default=Path("results/figures"), help="Directory containing SVG figures")
     report_parser.add_argument("--output", "-o", type=Path, default=Path("results/report.html"), help="Destination path for HTML report")
 
+    # Command: mlo-sim
+    mlo_parser = subparsers.add_parser("mlo-sim", help="Simulate Wi-Fi 7 Multi-Link Operation (MLO) latency")
+    mlo_parser.add_argument("--packets", "-n", type=int, default=2000, help="Number of packet arrivals to simulate")
+    mlo_parser.add_argument("--output", "-o", type=Path, default=Path("results/figures/fig5_mlo_vs_single_link.svg"), help="Output path for MLO SVG figure")
+
+    # Command: redact
+    redact_parser = subparsers.add_parser("redact", help="Sanitize private IPs and MACs for ethical public dataset release")
+    redact_parser.add_argument("--input", "-i", type=Path, default=Path("data/raw/pilot"), help="Input raw dataset directory")
+    redact_parser.add_argument("--output", "-o", type=Path, default=Path("data/raw/pilot_redacted"), help="Output redacted directory")
+
     return parser
 
 
@@ -68,6 +78,13 @@ def main(argv: list[str] | None = None) -> int:
     elif args.subcommand == "report":
         from wifi_lab.report_gen import generate_html_report
         return generate_html_report(summary_csv=args.summary, figures_dir=args.figures, output_html=args.output)
+    elif args.subcommand == "mlo-sim":
+        from wifi_lab.mlo_sim import run_mlo_simulation
+        res = run_mlo_simulation(packet_count=args.packets, output_figure=args.output)
+        return 0
+    elif args.subcommand == "redact":
+        from wifi_lab.redactor import redact_dataset
+        return redact_dataset(input_dir=args.input, output_dir=args.output)
     else:
         parser.print_help()
         return 1

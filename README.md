@@ -1,7 +1,7 @@
 # Wi-Fi Diagnostic Lab
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-12%20passed-success.svg)]()
+[![Tests](https://img.shields.io/badge/tests-17%20passed-success.svg)]()
 [![Reproducibility](https://img.shields.io/badge/reproducibility-verified%20pipeline-brightgreen.svg)]()
 [![Research Focus](https://img.shields.io/badge/focus-Wi--Fi%206%2F7%20Performance%20%26%20Diagnostics-blueviolet.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -42,7 +42,7 @@ A reproducible measurement, analysis, and diagnostic workflow for investigating 
 
 ## 📊 Core Research Figures
 
-All figures are automatically generated directly from raw measurement logs via `wifi_lab.plots`.
+All figures are automatically generated directly from raw measurement logs via `wifi_lab.plots` and `wifi_lab.mlo_sim`.
 
 | Fig 1: Receiver Throughput & Wired Ceiling | Fig 2: Latency ECDF (Idle vs. Loaded) |
 |:---:|:---:|
@@ -54,6 +54,11 @@ All figures are automatically generated directly from raw measurement logs via `
 | ![Figure 3](results/figures/fig3_rtt_timeseries.svg) | ![Figure 4](results/figures/fig4_loaded_delta_rtt.svg) |
 | *Real-time transition: Idle (30s) → Warm-up (3s) → Steady-State Load (60s) → Recovery (30s). Latency returns to baseline in ~4.5s.* | *Paired difference ($\Delta = \text{RTT}_{\text{loaded}} - \text{RTT}_{\text{idle}}$) isolating extra queueing delay injected by TCP traffic.* |
 
+| Fig 5: Wi-Fi 7 Multi-Link Operation (MLO) Queue Simulation |
+|:---:|
+| ![Figure 5](results/figures/fig5_mlo_vs_single_link.svg) |
+| *Opportunistic Link-Selection (5 GHz + 6 GHz) reduces 95th-percentile packet queueing delay by >90% compared to legacy single-link Wi-Fi 6 under medium channel contention.* |
+
 ---
 
 ## ⚡ Quickstart & Reproducibility
@@ -61,7 +66,7 @@ All figures are automatically generated directly from raw measurement logs via `
 The workflow is self-contained and operates with **zero external dependencies** on Python 3.11+ using the standard library.
 
 ### 1. One-Line Full Reproduction
-Run the automated test suite, pre-flight environment checks, pilot data collection, statistical processing, vector figure rendering, and diagnostic evaluation:
+Run the automated test suite, pre-flight environment checks, pilot data collection, statistical processing, vector figure rendering, diagnostic evaluation, MLO simulation, and dataset sanitization:
 
 ```bash
 bash scripts/reproduce.sh
@@ -84,6 +89,12 @@ python3 -m wifi_lab suggest --input data/processed/pilot/run_summary.csv
 
 # 5. Compile interactive standalone HTML dashboard & report
 python3 -m wifi_lab report --summary data/processed/pilot/run_summary.csv --output results/report.html
+
+# 6. Simulate Wi-Fi 7 (802.11be) Multi-Link Operation (MLO) latency benefits
+python3 -m wifi_lab mlo-sim --output results/figures/fig5_mlo_vs_single_link.svg
+
+# 7. Redact and pseudonymize dataset for open-science release (RFC 2330)
+python3 -m wifi_lab redact --input data/raw/pilot --output data/raw/pilot_redacted
 ```
 
 ---
@@ -142,17 +153,20 @@ wifi-diagnostic-lab/
 ├── scripts/
 │   └── reproduce.sh               # One-click end-to-end reproduction pipeline
 ├── src/wifi_lab/
-│   ├── cli.py                     # Unified CLI entry point (doctor, collect, analyse, suggest)
+│   ├── cli.py                     # Unified CLI entry point (doctor, collect, analyse, suggest, mlo-sim, redact)
 │   ├── doctor.py                  # Environment readiness and macOS Wi-Fi telemetry checker
 │   ├── runner.py                  # Multi-phase experiment execution and replay runner
 │   ├── mock_engine.py             # Physics-based Wi-Fi 6 mock generator for offline development
 │   ├── analysis.py                # Statistical aggregation and phase-guarded metrics
 │   ├── plots.py                   # Publication-quality vector figure generator
 │   ├── diagnostics.py             # WiSlow-style evidence-based diagnostic engine
+│   ├── report_gen.py              # Standalone interactive HTML report compiler
+│   ├── mlo_sim.py                 # Wi-Fi 7 (802.11be) Multi-Link Operation queue simulator
+│   ├── redactor.py                # RFC 2330 dataset pseudonymization and hashing engine
 │   └── parsers/
-│       ├── iperf.py               # Robust iperf3 JSON parser (decimal Mbps, direction matching)
+│       ├── iperf.py               # Robust iperf3 JSON parser (TCP + UDP bitrate/jitter/loss)
 │       └── ping_macos.py          # macOS ping parser with phase alignment and boundary guarding
-├── tests/                         # Automated unit test suite (12 tests, 100% passing)
+├── tests/                         # Automated unit test suite (17 tests, 100% passing)
 ├── pyproject.toml                 # Standard packaging metadata
 └── README.md
 ```
