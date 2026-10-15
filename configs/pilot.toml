@@ -1,0 +1,38 @@
+# Wi-Fi Diagnostic Lab — Pilot Experiment Configuration
+# Designed for 12 planned loaded runs across 2 positions, 2 directions, and 3 repetitions.
+
+[experiment]
+study_name = "pilot_study"
+target_day = "day1"
+randomize_order = true
+random_seed = 42
+
+[phases]
+idle_duration_s = 30.0
+warmup_duration_s = 3.0
+load_duration_s = 60.0
+recovery_duration_s = 30.0
+boundary_guard_s = 1.0
+ping_interval_s = 0.2
+
+[network]
+server_host = "192.168.178.50"   # Static IP of Gigabit Ethernet Host
+iperf_port = 5201
+protocol = "TCP"
+streams = 1
+band = "5 GHz"
+channel = 116
+channel_width_mhz = 80
+
+[positions.L1]
+description = "Line-of-Sight, 1.2m from FRITZ!Box 7530 AX"
+environment = "Desk level, clear Fresnel zone"
+
+[positions.L2]
+description = "Non-Line-of-Sight, 8.5m from AP across 1 drywall partition"
+environment = "Adjacent room, realistic residential obstruction"
+
+[repetition]
+repeats_per_condition = 3
+directions = ["download", "upload"]
+positions = ["L1", "L2"]

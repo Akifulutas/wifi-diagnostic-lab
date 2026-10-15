@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "L1_upload_rep1_20261015T080118Z",
+  "timestamp_utc": "2026-10-15T12:00:00Z",
+  "repetition_index": 1,
+  "day_label": "day1",
+  "condition": {
+    "position_id": "L1",
+    "position_description": "Line-of-Sight, 1.2m from FRITZ!Box 7530 AX",
+    "direction": "upload",
+    "protocol": "TCP",
+    "streams": 1,
+    "band": "5 GHz",
+    "channel": 116,
+    "channel_width_mhz": 80,
+    "idle_duration_s": 30.0,
+    "warmup_duration_s": 3.0,
+    "load_duration_s": 60.0,
+    "recovery_duration_s": 30.0,
+    "ping_interval_s": 0.2
+  },
+  "hardware": {
+    "client_device": "MacBook Pro (M1 Pro, 2021)",
+    "client_os": "macOS",
+    "client_wifi_card": "Broadcom BCM4387 / Apple Silicon Wi-Fi 6",
+    "ap_model": "FRITZ!Box 7530 AX",
+    "ap_firmware": "FRITZ!OS 7.8x/8.0x",
+    "server_device": "Gigabit Ethernet Host",
+    "server_os": "Linux / Unix"
+  },
+  "outcome": "ok",
+  "failure_reason": null,
+  "raw_files": {
+    "iperf": "iperf_raw.json",
+    "ping": "ping_raw.txt"
+  },
+  "metadata": {
+    "generator": "mock_wifi6_engine",
+    "seed": 53
+  }
+}

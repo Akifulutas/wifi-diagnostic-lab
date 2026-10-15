@@ -1,0 +1,41 @@
+<svg width="800" height="480" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff;font-family:system-ui,-apple-system,sans-serif;">
+<rect width="800" height="480" fill="#ffffff"/>
+<text x="400.0" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">Fig 4: Bufferbloat Impact — Loaded-minus-Idle RTT Delta (Δ RTT)</text>
+<text x="400.0" y="52" text-anchor="middle" font-size="13" fill="#64748b">Additional queueing delay introduced by saturation TCP load (Δ = RTT_loaded - RTT_idle)</text>
+<line x1="90" y1="410.0" x2="760" y2="410.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="415.0" text-anchor="end" font-size="12" fill="#475569">0 ms</text>
+<line x1="90" y1="342.0" x2="760" y2="342.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="347.0" text-anchor="end" font-size="12" fill="#475569">20 ms</text>
+<line x1="90" y1="274.0" x2="760" y2="274.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="279.0" text-anchor="end" font-size="12" fill="#475569">40 ms</text>
+<line x1="90" y1="206.0" x2="760" y2="206.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="211.0" text-anchor="end" font-size="12" fill="#475569">60 ms</text>
+<line x1="90" y1="138.0" x2="760" y2="138.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="143.0" text-anchor="end" font-size="12" fill="#475569">80 ms</text>
+<line x1="90" y1="70.0" x2="760" y2="70.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="75.0" text-anchor="end" font-size="12" fill="#475569">100 ms</text>
+<rect x="127.6875" y="309.86546666666663" width="92.12500000000001" height="100.13453333333334" fill="#f97316" rx="4" opacity="0.85"/>
+<text x="173.75" y="299.86546666666663" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">+29.5 ms</text>
+<circle cx="173.75" cy="311.876" r="4" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<circle cx="173.75" cy="304.14099999999996" r="4" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<circle cx="173.75" cy="313.57939999999996" r="4" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+<text x="173.75" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L1 DL</text>
+<rect x="295.1875" y="311.162" width="92.12500000000001" height="98.83800000000001" fill="#ea580c" rx="4" opacity="0.85"/>
+<text x="341.25" y="301.162" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">+29.1 ms</text>
+<circle cx="341.25" cy="311.876" r="4" fill="#ffffff" stroke="#ea580c" stroke-width="2"/>
+<circle cx="341.25" cy="308.0306" r="4" fill="#ffffff" stroke="#ea580c" stroke-width="2"/>
+<circle cx="341.25" cy="313.57939999999996" r="4" fill="#ffffff" stroke="#ea580c" stroke-width="2"/>
+<text x="341.25" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L1 UL</text>
+<rect x="462.6875" y="151.42433333333332" width="92.12500000000001" height="258.5756666666667" fill="#dc2626" rx="4" opacity="0.85"/>
+<text x="508.75" y="141.42433333333332" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">+76.1 ms</text>
+<circle cx="508.75" cy="152.06920000000002" r="4" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<circle cx="508.75" cy="141.859" r="4" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<circle cx="508.75" cy="160.34480000000002" r="4" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<text x="508.75" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L2 DL</text>
+<rect x="630.1875" y="151.19030000000004" width="92.12500000000001" height="258.80969999999996" fill="#b91c1c" rx="4" opacity="0.85"/>
+<text x="676.25" y="141.19030000000004" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">+76.1 ms</text>
+<circle cx="676.25" cy="148.30200000000002" r="4" fill="#ffffff" stroke="#b91c1c" stroke-width="2"/>
+<circle cx="676.25" cy="154.0786" r="4" fill="#ffffff" stroke="#b91c1c" stroke-width="2"/>
+<text x="676.25" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L2 UL</text>
+<text x="25" y="240.0" text-anchor="middle" font-size="13" font-weight="600" fill="#334155" transform="rotate(-90 25 240.0)">Extra Delay Δ RTT (ms)</text>
+</svg>

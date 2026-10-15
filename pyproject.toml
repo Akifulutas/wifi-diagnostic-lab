@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wifi-diagnostic-lab"
+version = "0.1.0"
+description = "A reproducible workflow for measuring Wi-Fi throughput and latency under documented conditions and diagnosing bottlenecks."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Akif Ulutaş" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Networking :: Monitoring",
+]
+dependencies = []
+
+[project.optional-dependencies]
+analysis = [
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+wifi-lab = "wifi_lab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

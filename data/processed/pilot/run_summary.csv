@@ -1,0 +1,13 @@
+run_id,day_label,position_id,direction,repetition,outcome,receiver_throughput_mbps,sender_throughput_mbps,tcp_retransmits,idle_rtt_median_ms,idle_rtt_p95_ms,loaded_rtt_median_ms,loaded_rtt_p95_ms,recovery_rtt_median_ms,delta_rtt_median_ms,sent_probes,received_probes,loss_rate_pct,failure_reason
+L1_download_rep1_20261015T080118Z,day1,L1,download,1,ok,795.157,799.41,14,2.48,3.22,31.34,51.879,2.615,28.86,615,611,0.7,
+L1_download_rep2_20261015T080118Z,day1,L1,download,2,ok,811.91,816.352,8,2.383,3.234,33.518,52.312,2.488,31.135,615,611,0.7,
+L1_download_rep3_20261015T080118Z,day1,L1,download,3,ok,828.608,835.919,14,2.493,3.333,30.852,49.413,2.564,28.359,615,612,0.5,
+L1_upload_rep1_20261015T080118Z,day1,L1,upload,1,ok,740.157,744.41,14,2.48,3.22,31.34,51.879,2.615,28.86,615,611,0.7,
+L1_upload_rep2_20261015T080118Z,day1,L1,upload,2,ok,736.291,738.711,9,2.393,3.125,32.384,54.165,2.433,29.991,615,610,0.8,
+L1_upload_rep3_20261015T080118Z,day1,L1,upload,3,ok,773.608,780.919,14,2.493,3.333,30.852,49.413,2.564,28.359,615,612,0.5,
+L2_download_rep1_20261015T080118Z,day1,L2,download,1,ok,492.367,499.929,34,4.099,6.25,79.962,139.934,4.411,75.862,615,595,3.3,
+L2_download_rep2_20261015T080118Z,day1,L2,download,2,ok,477.129,480.072,84,4.115,5.55,82.98,139.33,4.487,78.865,615,591,3.9,
+L2_download_rep3_20261015T080118Z,day1,L2,download,3,ok,495.493,502.659,55,4.194,5.923,77.623,141.138,4.564,73.428,615,590,4.1,
+L2_upload_rep1_20261015T080118Z,day1,L2,upload,1,ok,444.46,451.69,79,4.101,5.799,81.071,142.792,4.439,76.97,615,594,3.4,
+L2_upload_rep2_20261015T080118Z,day1,L2,upload,2,ok,461.233,467.948,75,4.147,5.844,79.418,140.383,4.212,75.271,615,594,3.4,
+L2_upload_rep3_20261015T080118Z,day1,L2,upload,3,tool_error,,,,,,,,,,1,0,100.0,Simulated transient socket timeout during handshake

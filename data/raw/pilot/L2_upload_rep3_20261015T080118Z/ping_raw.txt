@@ -1,0 +1,2 @@
+PING 192.168.178.50 (192.168.178.50): 56 data bytes
+Request timeout for icmp_seq 0

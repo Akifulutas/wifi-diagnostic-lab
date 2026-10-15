@@ -1,0 +1,31 @@
+{
+  "start": {
+    "test_start": {
+      "protocol": "TCP",
+      "num_streams": 1,
+      "reverse": 1
+    }
+  },
+  "end": {
+    "streams": [
+      {
+        "sender": {
+          "bits_per_second": 799410230.41,
+          "retransmits": 14
+        },
+        "receiver": {
+          "bits_per_second": 795157115.32,
+          "seconds": 60.04
+        }
+      }
+    ],
+    "sum_sent": {
+      "bits_per_second": 799410230.41,
+      "retransmits": 14
+    },
+    "sum_received": {
+      "bits_per_second": 795157115.32,
+      "seconds": 60.04
+    }
+  }
+}
