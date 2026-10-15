@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "run_id": "L2_upload_rep2_20261015T080118Z",
+  "run_id": "L2_upload_rep3_20261015T120000Z",
   "timestamp_utc": "2026-10-15T12:00:00Z",
-  "repetition_index": 2,
+  "repetition_index": 3,
   "day_label": "day1",
   "condition": {
     "position_id": "L2",
@@ -28,14 +28,14 @@
     "server_device": "Gigabit Ethernet Host",
     "server_os": "Linux / Unix"
   },
-  "outcome": "ok",
-  "failure_reason": null,
+  "outcome": "tool_error",
+  "failure_reason": "Simulated transient socket timeout during handshake",
   "raw_files": {
     "iperf": "iperf_raw.json",
     "ping": "ping_raw.txt"
   },
   "metadata": {
     "generator": "mock_wifi6_engine",
-    "seed": 43
+    "seed": 49
   }
 }

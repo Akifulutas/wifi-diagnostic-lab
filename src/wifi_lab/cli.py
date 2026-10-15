@@ -37,6 +37,12 @@ def build_parser() -> argparse.ArgumentParser:
     suggest_parser = subparsers.add_parser("suggest", help="Analyze run summaries using WiSlow-inspired diagnostic rules")
     suggest_parser.add_argument("--input", "-i", type=Path, default=Path("data/processed/pilot/run_summary.csv"), help="Processed run summary CSV")
 
+    # Command: report
+    report_parser = subparsers.add_parser("report", help="Generate standalone interactive HTML research dashboard")
+    report_parser.add_argument("--summary", "-s", type=Path, default=Path("data/processed/pilot/run_summary.csv"), help="Processed run summary CSV")
+    report_parser.add_argument("--figures", "-f", type=Path, default=Path("results/figures"), help="Directory containing SVG figures")
+    report_parser.add_argument("--output", "-o", type=Path, default=Path("results/report.html"), help="Destination path for HTML report")
+
     return parser
 
 
@@ -59,6 +65,9 @@ def main(argv: list[str] | None = None) -> int:
     elif args.subcommand == "suggest":
         from wifi_lab.diagnostics import run_diagnostics
         return run_diagnostics(summary_csv=args.input)
+    elif args.subcommand == "report":
+        from wifi_lab.report_gen import generate_html_report
+        return generate_html_report(summary_csv=args.summary, figures_dir=args.figures, output_html=args.output)
     else:
         parser.print_help()
         return 1

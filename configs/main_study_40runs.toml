@@ -1,0 +1,39 @@
+# Wi-Fi Diagnostic Lab — Main Study Configuration (40-Run Two-Day Design)
+# Evaluates day-to-day stability, blocked randomization, and statistical reproducibility.
+
+[experiment]
+study_name = "main_study_40runs"
+target_day = "day1"          # Set to "day1" or "day2" during execution blocks
+randomize_order = true
+random_seed = 101
+
+[phases]
+idle_duration_s = 30.0
+warmup_duration_s = 3.0
+load_duration_s = 60.0
+recovery_duration_s = 30.0
+boundary_guard_s = 1.0
+ping_interval_s = 0.2
+
+[network]
+server_host = "192.168.178.50"
+iperf_port = 5201
+protocol = "TCP"
+streams = 1
+band = "5 GHz"
+channel = 116
+channel_width_mhz = 80
+
+[positions.L1]
+description = "Line-of-Sight, 1.2m from FRITZ!Box 7530 AX"
+environment = "Desk level, clear Fresnel zone"
+
+[positions.L2]
+description = "Non-Line-of-Sight, 8.5m from AP across 1 drywall partition"
+environment = "Adjacent room, residential obstruction"
+
+[repetition]
+repeats_per_condition = 5    # 5 repeats x 2 positions x 2 directions = 20 runs/day
+directions = ["download", "upload"]
+positions = ["L1", "L2"]
+days = ["day1", "day2"]      # Total = 40 planned loaded runs across 2 days

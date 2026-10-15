@@ -34,7 +34,8 @@ echo -e "\n[2/5] Running environment doctor..."
 ${PYTHON_BIN} -m wifi_lab doctor || true
 
 # Step 3: Run Pilot Experiment (Mock/Replay mode for offline determinism)
-echo -e "\n[3/5] Executing 12-run pilot collection..."
+echo -e "\n[3/6] Executing 12-run pilot collection..."
+rm -rf data/raw/pilot/*
 ${PYTHON_BIN} -m wifi_lab collect --mock --config configs/pilot.toml --output data/raw/pilot
 
 # Step 4: Run Statistical Analysis & Render Figures
@@ -42,12 +43,18 @@ echo -e "\n[4/5] Executing analysis pipeline & rendering SVG research figures...
 ${PYTHON_BIN} -m wifi_lab analyse --input data/raw/pilot --output data/processed/pilot --figures results/figures
 
 # Step 5: Run WiSlow-inspired Diagnostic Engine
-echo -e "\n[5/5] Executing diagnostic recommender..."
+echo -e "\n[5/6] Executing diagnostic recommender..."
 ${PYTHON_BIN} -m wifi_lab suggest --input data/processed/pilot/run_summary.csv
+
+# Step 6: Generate Standalone Interactive HTML Dashboard
+echo -e "\n[6/6] Compiling interactive HTML research dashboard..."
+${PYTHON_BIN} -m wifi_lab report --summary data/processed/pilot/run_summary.csv --figures results/figures --output results/report.html
 
 echo -e "\n========================================================================"
 echo "  [SUCCESS] All pipeline stages reproduced successfully!"
 echo "  - Processed CSVs: data/processed/pilot/"
 echo "  - Figures (SVG):  results/figures/"
+echo "  - HTML Dashboard: results/report.html"
 echo "  - Research Report: docs/report.md"
+echo "  - Protocol Labs:  docs/protocol-labs/"
 echo "========================================================================"

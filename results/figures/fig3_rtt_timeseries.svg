@@ -1,7 +1,7 @@
 <svg width="850" height="480" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff;font-family:system-ui,-apple-system,sans-serif;">
 <rect width="850" height="480" fill="#ffffff"/>
 <text x="425.0" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">Fig 3: Latency Time-Series across Four Measurement Phases</text>
-<text x="425.0" y="52" text-anchor="middle" font-size="13" fill="#64748b">Run ID: L1_download_rep1_20261015T080118Z (L1 Download, 60s steady-state TCP load)</text>
+<text x="425.0" y="52" text-anchor="middle" font-size="13" fill="#64748b">Run ID: L1_download_rep1_20261015T120000Z (L1 Download, 60s steady-state TCP load)</text>
 <rect x="80" y="70" width="175.2" height="340" fill="#f0fdf4" opacity="0.9"/>
 <text x="167.6" y="95" text-anchor="middle" font-size="12" font-weight="bold" fill="#166534">IDLE (30s)</text>
 <rect x="255.2" y="70" width="17.52000000000004" height="340" fill="#fef9c3" opacity="0.9"/>

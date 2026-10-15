@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0.0",
-  "run_id": "L1_upload_rep2_20261015T080118Z",
+  "run_id": "L2_upload_rep1_20261015T120000Z",
   "timestamp_utc": "2026-10-15T12:00:00Z",
-  "repetition_index": 2,
+  "repetition_index": 1,
   "day_label": "day1",
   "condition": {
-    "position_id": "L1",
-    "position_description": "Line-of-Sight, 1.2m from FRITZ!Box 7530 AX",
+    "position_id": "L2",
+    "position_description": "Non-Line-of-Sight, 8.5m from AP across 1 drywall partition",
     "direction": "upload",
     "protocol": "TCP",
     "streams": 1,
@@ -36,6 +36,6 @@
   },
   "metadata": {
     "generator": "mock_wifi6_engine",
-    "seed": 44
+    "seed": 50
   }
 }

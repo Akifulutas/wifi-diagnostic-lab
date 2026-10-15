@@ -81,6 +81,9 @@ python3 -m wifi_lab analyse --input data/raw/pilot --output data/processed/pilot
 
 # 4. Run WiSlow-inspired evidence-based diagnostic engine
 python3 -m wifi_lab suggest --input data/processed/pilot/run_summary.csv
+
+# 5. Compile interactive standalone HTML dashboard & report
+python3 -m wifi_lab report --summary data/processed/pilot/run_summary.csv --output results/report.html
 ```
 
 ---
@@ -128,8 +131,14 @@ wifi-diagnostic-lab/
 │   ├── data-dictionary.md         # Formal field, unit, and missing-value definitions
 │   ├── experiment-protocol.md     # 4-phase protocol, boundary guards, and failure accounting
 │   ├── hardware.md                # FRITZ!Box 7530 AX & M1 Pro hardware capability analysis
-│   └── literature-review.md       # Synthesis of WiSlow, Wi-Fi 6 testbeds, and Wi-Fi 7 MLO
-├── results/figures/               # Standalone publication vector figures (SVG)
+│   ├── literature-review.md       # Synthesis of WiSlow, Wi-Fi 6 testbeds, and Wi-Fi 7 MLO
+│   └── protocol-labs/             # Hands-on packet analysis & protocol engineering notes
+│       ├── lab01_tcp_handshake_rtt.md
+│       ├── lab02_mac_retry_vs_tcp_retrans.md
+│       └── lab03_bufferbloat_queueing.md
+├── results/
+│   ├── figures/                   # Standalone publication vector figures (SVG)
+│   └── report.html                # Self-contained interactive HTML research dashboard
 ├── scripts/
 │   └── reproduce.sh               # One-click end-to-end reproduction pipeline
 ├── src/wifi_lab/

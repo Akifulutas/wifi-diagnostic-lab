@@ -99,7 +99,10 @@ def execute_collection(
             ping_interval_s=float(phases_cfg.get("ping_interval_s", 0.2)),
         )
 
-        ts_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        if mock:
+            ts_str = "20261015T120000Z"
+        else:
+            ts_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         run_id = f"{pos_id}_{direction.value}_rep{rep_idx}_{ts_str}"
         run_folder = output_dir / run_id
         run_folder.mkdir(parents=True, exist_ok=True)
