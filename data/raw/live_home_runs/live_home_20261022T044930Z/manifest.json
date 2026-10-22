@@ -1,0 +1,85 @@
+{
+  "run_id": "live_home_20261022T044930Z",
+  "timestamp_utc": "2026-10-22T04:49:30.142855+00:00",
+  "wifi_telemetry": {
+    "phy_mode": "802.11ax",
+    "channel": "48 (5GHz, 80MHz)",
+    "signal_noise": "-52 dBm / -89 dBm",
+    "tx_rate_mbps": 1134.0,
+    "mcs_index": "10"
+  },
+  "network": {
+    "gateway_ip": "192.168.178.1",
+    "remote_ip": "1.1.1.1",
+    "streams": 4,
+    "load_throughput_mbps": 0.0
+  },
+  "statistics": {
+    "wifi_hop": {
+      "idle": {
+        "count": 15,
+        "min_ms": 3.26,
+        "median_ms": 4.72,
+        "p95_ms": 88.81,
+        "max_ms": 88.81,
+        "jitter_ms": 6.11
+      },
+      "load": {
+        "count": 52,
+        "min_ms": 2.7,
+        "median_ms": 5.4,
+        "p95_ms": 78.51,
+        "max_ms": 91.11,
+        "jitter_ms": 1.73
+      },
+      "recovery": {
+        "count": 14,
+        "min_ms": 1.92,
+        "median_ms": 2.63,
+        "p95_ms": 3.25,
+        "max_ms": 3.25,
+        "jitter_ms": 0.1
+      },
+      "delta_median_ms": 0.68,
+      "delta_p95_ms": 0.0
+    },
+    "end_to_end": {
+      "idle": {
+        "count": 15,
+        "min_ms": 11.11,
+        "median_ms": 13.61,
+        "p95_ms": 91.58,
+        "max_ms": 91.58,
+        "jitter_ms": 5.75
+      },
+      "load": {
+        "count": 52,
+        "min_ms": 10.17,
+        "median_ms": 45.04,
+        "p95_ms": 116.78,
+        "max_ms": 133.72,
+        "jitter_ms": 2.42
+      },
+      "recovery": {
+        "count": 15,
+        "min_ms": 10.12,
+        "median_ms": 11.09,
+        "p95_ms": 13.15,
+        "max_ms": 13.15,
+        "jitter_ms": 0.22
+      },
+      "delta_median_ms": 31.43,
+      "delta_p95_ms": 25.2
+    },
+    "differential_wan": {
+      "delta_median_ms": 30.75,
+      "delta_p95_ms": 25.2
+    }
+  },
+  "verdict": {
+    "label": "WAN_ACCESS_BOTTLENECK",
+    "bottleneck_region": "WAN Access Link / Modem (NetCologne DS-Lite / ISP Queue)",
+    "bufferbloat_grade": "B (Acceptable)",
+    "explanation": "Wi-Fi link remained ultra-fast (+0.0ms), but total end-to-end latency surged (+25.2ms). Queueing is in the WAN/modem buffer."
+  }
+}
