@@ -1,0 +1,320 @@
+{
+  "$defs": {
+    "BackendType": {
+      "description": "Execution backend platform.",
+      "enum": [
+        "native_linux",
+        "container_linux",
+        "vm_linux",
+        "mock_simulation"
+      ],
+      "title": "BackendType",
+      "type": "string"
+    },
+    "EnvironmentInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "hostname": {
+          "title": "Hostname",
+          "type": "string"
+        },
+        "os_name": {
+          "title": "Os Name",
+          "type": "string"
+        },
+        "kernel_release": {
+          "title": "Kernel Release",
+          "type": "string"
+        },
+        "architecture": {
+          "title": "Architecture",
+          "type": "string"
+        },
+        "backend": {
+          "description": "Execution backend platform.",
+          "enum": [
+            "native_linux",
+            "container_linux",
+            "vm_linux",
+            "mock_simulation"
+          ],
+          "title": "BackendType",
+          "type": "string"
+        },
+        "git_commit": {
+          "title": "Git Commit",
+          "type": "string"
+        },
+        "git_dirty": {
+          "title": "Git Dirty",
+          "type": "boolean"
+        },
+        "python_version": {
+          "title": "Python Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hostname",
+        "os_name",
+        "kernel_release",
+        "architecture",
+        "backend",
+        "git_commit",
+        "git_dirty",
+        "python_version"
+      ],
+      "title": "EnvironmentInfo",
+      "type": "object"
+    },
+    "ExperimentParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "phases": {
+          "$ref": "#/$defs/PhaseParameters"
+        },
+        "load_profile": {
+          "$ref": "#/$defs/LoadProfile"
+        },
+        "probe_profile": {
+          "$ref": "#/$defs/ProbeProfile"
+        }
+      },
+      "required": [
+        "phases",
+        "load_profile",
+        "probe_profile"
+      ],
+      "title": "ExperimentParameters",
+      "type": "object"
+    },
+    "LoadProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol": {
+          "$ref": "#/$defs/TrafficProtocol",
+          "default": "tcp"
+        },
+        "direction": {
+          "$ref": "#/$defs/TrafficDirection",
+          "default": "upload"
+        },
+        "target_bitrate_bps": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Bitrate Bps"
+        },
+        "tcp_congestion_control": {
+          "default": "cubic",
+          "title": "Tcp Congestion Control",
+          "type": "string"
+        },
+        "parallel_streams": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Parallel Streams",
+          "type": "integer"
+        },
+        "socket_buffer_bytes": {
+          "anyOf": [
+            {
+              "minimum": 1024,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Socket Buffer Bytes"
+        }
+      },
+      "title": "LoadProfile",
+      "type": "object"
+    },
+    "PhaseParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_idle_s": {
+          "default": 20.0,
+          "description": "Duration of initial idle probe phase.",
+          "exclusiveMinimum": 0.0,
+          "title": "Baseline Idle S",
+          "type": "number"
+        },
+        "saturation_load_s": {
+          "default": 60.0,
+          "description": "Duration of load saturation phase.",
+          "exclusiveMinimum": 0.0,
+          "title": "Saturation Load S",
+          "type": "number"
+        },
+        "recovery_s": {
+          "default": 30.0,
+          "description": "Duration of recovery drain observation phase.",
+          "exclusiveMinimum": 0.0,
+          "title": "Recovery S",
+          "type": "number"
+        }
+      },
+      "title": "PhaseParameters",
+      "type": "object"
+    },
+    "ProbeProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "ping_interval_s": {
+          "default": 0.1,
+          "exclusiveMinimum": 0.001,
+          "title": "Ping Interval S",
+          "type": "number"
+        },
+        "irtt_interval_s": {
+          "default": 0.02,
+          "exclusiveMinimum": 0.001,
+          "title": "Irtt Interval S",
+          "type": "number"
+        },
+        "irtt_packet_len": {
+          "default": 172,
+          "maximum": 65507,
+          "minimum": 64,
+          "title": "Irtt Packet Len",
+          "type": "integer"
+        }
+      },
+      "title": "ProbeProfile",
+      "type": "object"
+    },
+    "TrafficDirection": {
+      "description": "Load generation directionality.",
+      "enum": [
+        "upload",
+        "download",
+        "bidirectional"
+      ],
+      "title": "TrafficDirection",
+      "type": "string"
+    },
+    "TrafficProtocol": {
+      "description": "Transport protocol for load generation.",
+      "enum": [
+        "tcp",
+        "udp"
+      ],
+      "title": "TrafficProtocol",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root model for runs/<run_id>/manifest.json.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^(run_[a-f0-9\\-]+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "timestamp_utc": {
+      "format": "date-time",
+      "title": "Timestamp Utc",
+      "type": "string"
+    },
+    "duration_seconds": {
+      "exclusiveMinimum": 0.0,
+      "title": "Duration Seconds",
+      "type": "number"
+    },
+    "parameters": {
+      "$ref": "#/$defs/ExperimentParameters"
+    },
+    "environment": {
+      "additionalProperties": false,
+      "properties": {
+        "hostname": {
+          "title": "Hostname",
+          "type": "string"
+        },
+        "os_name": {
+          "title": "Os Name",
+          "type": "string"
+        },
+        "kernel_release": {
+          "title": "Kernel Release",
+          "type": "string"
+        },
+        "architecture": {
+          "title": "Architecture",
+          "type": "string"
+        },
+        "backend": {
+          "description": "Execution backend platform.",
+          "enum": [
+            "native_linux",
+            "container_linux",
+            "vm_linux",
+            "mock_simulation"
+          ],
+          "title": "BackendType",
+          "type": "string"
+        },
+        "git_commit": {
+          "title": "Git Commit",
+          "type": "string"
+        },
+        "git_dirty": {
+          "title": "Git Dirty",
+          "type": "boolean"
+        },
+        "python_version": {
+          "title": "Python Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hostname",
+        "os_name",
+        "kernel_release",
+        "architecture",
+        "backend",
+        "git_commit",
+        "git_dirty",
+        "python_version"
+      ],
+      "title": "EnvironmentInfo",
+      "type": "object"
+    },
+    "artifacts": {
+      "additionalProperties": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "description": "Artifact relative path to sha256.",
+      "title": "Artifacts",
+      "type": "object"
+    }
+  },
+  "required": [
+    "run_id",
+    "duration_seconds",
+    "parameters",
+    "environment"
+  ],
+  "title": "RunManifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bufferbloat-localization-lab.net/schemas/v1/manifest.schema.json"
+}

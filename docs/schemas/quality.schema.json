@@ -1,0 +1,201 @@
+{
+  "$defs": {
+    "QualityFlags": {
+      "additionalProperties": false,
+      "properties": {
+        "missing_phases": {
+          "default": false,
+          "title": "Missing Phases",
+          "type": "boolean"
+        },
+        "unreached_load": {
+          "default": false,
+          "title": "Unreached Load",
+          "type": "boolean"
+        },
+        "route_changes": {
+          "default": false,
+          "title": "Route Changes",
+          "type": "boolean"
+        },
+        "unverified_qdiscs": {
+          "default": false,
+          "title": "Unverified Qdiscs",
+          "type": "boolean"
+        },
+        "observer_unavailability": {
+          "default": false,
+          "title": "Observer Unavailability",
+          "type": "boolean"
+        },
+        "client_cpu_saturation": {
+          "default": false,
+          "title": "Client Cpu Saturation",
+          "type": "boolean"
+        },
+        "clock_unsynchronized": {
+          "default": false,
+          "title": "Clock Unsynchronized",
+          "type": "boolean"
+        },
+        "monotonicity_violation": {
+          "default": false,
+          "title": "Monotonicity Violation",
+          "type": "boolean"
+        }
+      },
+      "title": "QualityFlags",
+      "type": "object",
+      "required": [
+        "missing_phases",
+        "unreached_load",
+        "route_changes",
+        "unverified_qdiscs",
+        "observer_unavailability",
+        "client_cpu_saturation",
+        "clock_unsynchronized",
+        "monotonicity_violation"
+      ]
+    },
+    "QualityMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "client_max_cpu_percent": {
+          "anyOf": [
+            {
+              "maximum": 100.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Client Max Cpu Percent"
+        },
+        "server_max_cpu_percent": {
+          "anyOf": [
+            {
+              "maximum": 100.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Server Max Cpu Percent"
+        },
+        "total_dropped_probes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Dropped Probes",
+          "type": "integer"
+        },
+        "clock_drift_estimate_ms": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Clock Drift Estimate Ms"
+        },
+        "load_reached_bps": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Load Reached Bps"
+        },
+        "load_target_bps": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Load Target Bps"
+        }
+      },
+      "title": "QualityMetrics",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root model for runs/<run_id>/quality.json.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "timestamp_utc": {
+      "format": "date-time",
+      "title": "Timestamp Utc",
+      "type": "string"
+    },
+    "valid_for_inference": {
+      "title": "Valid For Inference",
+      "type": "boolean"
+    },
+    "flags": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/QualityFlags"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "metrics": {
+      "$ref": "#/$defs/QualityMetrics"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "valid_for_inference",
+    "flags"
+  ],
+  "title": "QualityAudit",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bufferbloat-localization-lab.net/schemas/v1/quality.schema.json"
+}

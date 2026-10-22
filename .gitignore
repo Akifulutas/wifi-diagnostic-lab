@@ -3,6 +3,9 @@
 venv/
 __pycache__/
 *.py[cod]
+*.egg-info/
+build/
+dist/
 .pytest_cache/
 .ruff_cache/
 .coverage
@@ -11,3 +14,5 @@ htmlcov/
 .env.*
 !.env.example
 data/private/
+runs/
+export/

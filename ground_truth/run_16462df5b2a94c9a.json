@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "run_16462df5b2a94c9a",
+  "scenario_name": "healthy_baseline",
+  "bottleneck_regions": [],
+  "expected_latency_increase": false,
+  "expected_queue_evidence": "none",
+  "expected_supported_regions": [],
+  "expected_not_excluded_regions": [],
+  "expected_abstained": false,
+  "expected_abstain_reason": null,
+  "injected_parameters": {},
+  "scenario_id": "healthy_baseline"
+}

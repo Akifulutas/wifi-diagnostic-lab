@@ -1,0 +1,333 @@
+{
+  "$defs": {
+    "InterfaceConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 15,
+          "pattern": "^bll-[a-z0-9\\-]{1,11}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "ipv4_address": {
+          "title": "Ipv4 Address",
+          "type": "string"
+        },
+        "mac_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mac Address"
+        },
+        "peer_node": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peer Node"
+        },
+        "peer_interface": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peer Interface"
+        }
+      },
+      "required": [
+        "name",
+        "ipv4_address"
+      ],
+      "title": "InterfaceConfig",
+      "type": "object"
+    },
+    "LinkConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "link_id": {
+          "title": "Link Id",
+          "type": "string"
+        },
+        "subnet": {
+          "title": "Subnet",
+          "type": "string"
+        },
+        "node_a": {
+          "title": "Node A",
+          "type": "string"
+        },
+        "interface_a": {
+          "title": "Interface A",
+          "type": "string"
+        },
+        "ip_a": {
+          "title": "Ip A",
+          "type": "string"
+        },
+        "node_b": {
+          "title": "Node B",
+          "type": "string"
+        },
+        "interface_b": {
+          "title": "Interface B",
+          "type": "string"
+        },
+        "ip_b": {
+          "title": "Ip B",
+          "type": "string"
+        }
+      },
+      "required": [
+        "link_id",
+        "subnet",
+        "node_a",
+        "interface_a",
+        "ip_a",
+        "node_b",
+        "interface_b",
+        "ip_b"
+      ],
+      "title": "LinkConfig",
+      "type": "object"
+    },
+    "PathInvariants": {
+      "additionalProperties": false,
+      "properties": {
+        "client_to_observer": {
+          "title": "Client To Observer",
+          "type": "boolean"
+        },
+        "observer_to_remote": {
+          "title": "Observer To Remote",
+          "type": "boolean"
+        },
+        "client_to_remote": {
+          "title": "Client To Remote",
+          "type": "boolean"
+        },
+        "verified_at_utc": {
+          "format": "date-time",
+          "title": "Verified At Utc",
+          "type": "string"
+        }
+      },
+      "required": [
+        "client_to_observer",
+        "observer_to_remote",
+        "client_to_remote"
+      ],
+      "title": "PathInvariants",
+      "type": "object"
+    },
+    "QdiscConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "node": {
+          "title": "Node",
+          "type": "string"
+        },
+        "interface": {
+          "title": "Interface",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "egress",
+            "ingress"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "qdisc_kind": {
+          "$ref": "#/$defs/QdiscKind"
+        },
+        "handle": {
+          "title": "Handle",
+          "type": "string"
+        },
+        "parent": {
+          "title": "Parent",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        }
+      },
+      "required": [
+        "node",
+        "interface",
+        "direction",
+        "qdisc_kind",
+        "handle",
+        "parent"
+      ],
+      "title": "QdiscConfig",
+      "type": "object"
+    },
+    "QdiscKind": {
+      "description": "Linux tc qdisc algorithms.",
+      "enum": [
+        "tbf",
+        "pfifo",
+        "bfifo",
+        "netem",
+        "fq_codel",
+        "cake",
+        "htb"
+      ],
+      "title": "QdiscKind",
+      "type": "string"
+    },
+    "RouteConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "destination_cidr": {
+          "title": "Destination Cidr",
+          "type": "string"
+        },
+        "gateway_ip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gateway Ip"
+        },
+        "interface": {
+          "title": "Interface",
+          "type": "string"
+        }
+      },
+      "required": [
+        "destination_cidr",
+        "interface"
+      ],
+      "title": "RouteConfig",
+      "type": "object"
+    },
+    "TopologyNode": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "client",
+            "near_bottleneck",
+            "router",
+            "observer",
+            "far_bottleneck",
+            "remote_target"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "forwarding_enabled": {
+          "title": "Forwarding Enabled",
+          "type": "boolean"
+        },
+        "interfaces": {
+          "items": {
+            "$ref": "#/$defs/InterfaceConfig"
+          },
+          "title": "Interfaces",
+          "type": "array"
+        },
+        "routes": {
+          "items": {
+            "$ref": "#/$defs/RouteConfig"
+          },
+          "title": "Routes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "role",
+        "forwarding_enabled",
+        "interfaces",
+        "routes"
+      ],
+      "title": "TopologyNode",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root model for runs/<run_id>/topology.json.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "topology_name": {
+      "title": "Topology Name",
+      "type": "string"
+    },
+    "timestamp_utc": {
+      "format": "date-time",
+      "title": "Timestamp Utc",
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/TopologyNode"
+      },
+      "title": "Nodes",
+      "type": "array"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/LinkConfig"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "qdiscs": {
+      "items": {
+        "$ref": "#/$defs/QdiscConfig"
+      },
+      "title": "Qdiscs",
+      "type": "array"
+    },
+    "invariants_verified": {
+      "$ref": "#/$defs/PathInvariants"
+    }
+  },
+  "required": [
+    "topology_name",
+    "nodes",
+    "links",
+    "qdiscs",
+    "invariants_verified"
+  ],
+  "title": "TopologySnapshot",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bufferbloat-localization-lab.net/schemas/v1/topology.schema.json"
+}

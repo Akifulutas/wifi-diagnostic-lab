@@ -1,0 +1,137 @@
+{
+  "$defs": {
+    "AbstainReason": {
+      "description": "Mathematical reason for set-valued abstention.",
+      "enum": [
+        "AMBIGUOUS_VANTAGE_COVERAGE",
+        "INDISTINGUISHABLE_TOPOLOGY",
+        "INSUFFICIENT_LOAD_SATURATION",
+        "QUALITY_FLAG_INVALIDATION",
+        "NO_LATENCY_INFLATION"
+      ],
+      "title": "AbstainReason",
+      "type": "string"
+    },
+    "QueueEvidenceLevel": {
+      "description": "Strength of empirical queue buildup evidence.",
+      "enum": [
+        "none",
+        "weak",
+        "moderate",
+        "strong"
+      ],
+      "title": "QueueEvidenceLevel",
+      "type": "string"
+    },
+    "RegionName": {
+      "description": "Canonical mutually exclusive network regions (R5).",
+      "enum": [
+        "local_host",
+        "near_link",
+        "gateway_node",
+        "far_link",
+        "remote_host"
+      ],
+      "title": "RegionName",
+      "type": "string"
+    },
+    "ScenarioName": {
+      "description": "The 12 reference controlled testbed scenarios.",
+      "enum": [
+        "healthy_baseline",
+        "near_fifo",
+        "far_fifo",
+        "dual_fifo",
+        "fixed_delay_no_queue",
+        "load_correlated_non_queue",
+        "controlled_loss",
+        "endpoint_cpu_delay",
+        "fifo_vs_fqcodel_vs_cake",
+        "protocol_discrepancy",
+        "indistinguishable_pair_a",
+        "indistinguishable_pair_b"
+      ],
+      "title": "ScenarioName",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root model for ground_truth/<opaque_run_id>.json.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "scenario_name": {
+      "$ref": "#/$defs/ScenarioName"
+    },
+    "bottleneck_regions": {
+      "items": {
+        "$ref": "#/$defs/RegionName"
+      },
+      "title": "Bottleneck Regions",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "expected_latency_increase": {
+      "title": "Expected Latency Increase",
+      "type": "boolean"
+    },
+    "expected_queue_evidence": {
+      "$ref": "#/$defs/QueueEvidenceLevel"
+    },
+    "expected_supported_regions": {
+      "items": {
+        "$ref": "#/$defs/RegionName"
+      },
+      "title": "Expected Supported Regions",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "expected_not_excluded_regions": {
+      "items": {
+        "$ref": "#/$defs/RegionName"
+      },
+      "title": "Expected Not Excluded Regions",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "expected_abstained": {
+      "default": false,
+      "title": "Expected Abstained",
+      "type": "boolean"
+    },
+    "expected_abstain_reason": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AbstainReason"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "injected_parameters": {
+      "additionalProperties": true,
+      "title": "Injected Parameters",
+      "type": "object"
+    }
+  },
+  "required": [
+    "run_id",
+    "scenario_name",
+    "expected_latency_increase",
+    "expected_queue_evidence"
+  ],
+  "title": "GroundTruth",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bufferbloat-localization-lab.net/schemas/v1/ground_truth.schema.json"
+}

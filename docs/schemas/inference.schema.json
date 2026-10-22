@@ -1,0 +1,249 @@
+{
+  "$defs": {
+    "CorrelationMetric": {
+      "description": "Statistical metric for throughput-latency association.",
+      "enum": [
+        "spearman_rank",
+        "pearson_r",
+        "hodges_lehmann_shift"
+      ],
+      "title": "CorrelationMetric",
+      "type": "string"
+    },
+    "LoadAssociation": {
+      "additionalProperties": false,
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/CorrelationMetric"
+        },
+        "correlation_coefficient": {
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Correlation Coefficient",
+          "type": "number"
+        },
+        "p_value": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "P Value",
+          "type": "number"
+        },
+        "delta_rtt_ms": {
+          "minimum": 0.0,
+          "title": "Delta Rtt Ms",
+          "type": "number"
+        },
+        "significant": {
+          "title": "Significant",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "metric",
+        "correlation_coefficient",
+        "p_value",
+        "delta_rtt_ms",
+        "significant"
+      ],
+      "title": "LoadAssociation",
+      "type": "object"
+    },
+    "MeasurementProtocol": {
+      "description": "Telemetry probe protocol.",
+      "enum": [
+        "icmp",
+        "udp_irtt",
+        "tcp_probe"
+      ],
+      "title": "MeasurementProtocol",
+      "type": "string"
+    },
+    "NextMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "recommended_action": {
+          "title": "Recommended Action",
+          "type": "string"
+        },
+        "target_vantage": {
+          "title": "Target Vantage",
+          "type": "string"
+        },
+        "target_protocol": {
+          "$ref": "#/$defs/MeasurementProtocol"
+        },
+        "estimated_cost": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Estimated Cost",
+          "type": "integer"
+        },
+        "discriminating_power": {
+          "title": "Discriminating Power",
+          "type": "string"
+        }
+      },
+      "required": [
+        "recommended_action",
+        "target_vantage",
+        "target_protocol",
+        "estimated_cost",
+        "discriminating_power"
+      ],
+      "title": "NextMeasurement",
+      "type": "object"
+    },
+    "QueueEvidenceLevel": {
+      "description": "Strength of empirical queue buildup evidence.",
+      "enum": [
+        "none",
+        "weak",
+        "moderate",
+        "strong"
+      ],
+      "title": "QueueEvidenceLevel",
+      "type": "string"
+    },
+    "RegionName": {
+      "description": "Canonical mutually exclusive network regions (R5).",
+      "enum": [
+        "local_host",
+        "near_link",
+        "gateway_node",
+        "far_link",
+        "remote_host"
+      ],
+      "title": "RegionName",
+      "type": "string"
+    },
+    "VantageProfile": {
+      "description": "Ablation harness vantage point configurations.",
+      "enum": [
+        "remote_only",
+        "gateway_remote",
+        "local_remote",
+        "full_observer"
+      ],
+      "title": "VantageProfile",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root model for inference.json (R5, Interface Contract 4).",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "timestamp_utc": {
+      "format": "date-time",
+      "title": "Timestamp Utc",
+      "type": "string"
+    },
+    "vantage_profile": {
+      "$ref": "#/$defs/VantageProfile"
+    },
+    "latency_increase_observed": {
+      "title": "Latency Increase Observed",
+      "type": "boolean"
+    },
+    "load_association": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/LoadAssociation"
+        }
+      ],
+      "title": "Load Association"
+    },
+    "supported_regions": {
+      "items": {
+        "$ref": "#/$defs/RegionName"
+      },
+      "title": "Supported Regions",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "not_excluded_regions": {
+      "items": {
+        "$ref": "#/$defs/RegionName"
+      },
+      "title": "Not Excluded Regions",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "queue_evidence": {
+      "$ref": "#/$defs/QueueEvidenceLevel"
+    },
+    "quality_flags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Quality Flags",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "abstained": {
+      "title": "Abstained",
+      "type": "boolean"
+    },
+    "abstain_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Abstain Reason"
+    },
+    "next_measurement": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NextMeasurement"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Next Measurement"
+    },
+    "supporting_run_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Supporting Run Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "vantage_profile",
+    "latency_increase_observed",
+    "load_association",
+    "queue_evidence",
+    "abstained",
+    "supporting_run_ids"
+  ],
+  "title": "InferenceVerdict",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bufferbloat-localization-lab.net/schemas/v1/inference.schema.json"
+}

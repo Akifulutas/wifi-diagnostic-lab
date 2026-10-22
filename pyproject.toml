@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wifi-diagnostic-lab"
-version = "0.1.0"
-description = "A reproducible workflow for measuring Wi-Fi throughput and latency under documented conditions and diagnosing bottlenecks."
+version = "0.2.0"
+description = "A reproducible workflow and research testbed for measuring Wi-Fi throughput, latency under load (Bufferbloat), and set-valued bottleneck localization."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -19,7 +19,13 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: System :: Networking :: Monitoring",
 ]
-dependencies = []
+dependencies = [
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
+    "pyarrow>=15.0.0",
+    "duckdb>=1.0.0",
+    "pyyaml>=6.0.0",
+]
 
 [project.optional-dependencies]
 analysis = [
@@ -27,11 +33,29 @@ analysis = [
     "matplotlib>=3.7.0",
 ]
 dev = [
-    "pytest>=7.0.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "jsonschema>=4.0.0",
 ]
 
 [project.scripts]
 wifi-lab = "wifi_lab.cli:main"
+bll = "bll.cli:main"
+bll-lab-helper = "bll.helper.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "-ra -q"
+markers = [
+    "unit: Unit tests not requiring root or external tools",
+    "contract: Contract tests validating JSON schemas and interface models",
+    "invariant: Path matrix and mathematical invariant tests",
+    "netns: Integration tests requiring Linux network namespaces or container",
+    "fault_injection: Teardown and error recovery tests",
+    "regression: Regression and determinism benchmarks",
+]

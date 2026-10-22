@@ -1,186 +1,164 @@
-# Wi-Fi Diagnostic Lab
+# Wi-Fi Diagnostic Lab & Bufferbloat Localization Engine
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-17%20passed-success.svg)]()
-[![Reproducibility](https://img.shields.io/badge/reproducibility-verified%20pipeline-brightgreen.svg)]()
-[![Research Focus](https://img.shields.io/badge/focus-Wi--Fi%206%2F7%20Performance%20%26%20Diagnostics-blueviolet.svg)]()
+[![Tests](https://img.shields.io/badge/tests-480%20passed%20%7C%200%20failed-brightgreen.svg)]()
+[![E2E Verification](https://img.shields.io/badge/e2e%20benchmark-99.65%25%20pass-success.svg)]()
+[![Hardware Testbed](https://img.shields.io/badge/live%20hardware-Wi--Fi%206%20(802.11ax)%20%2B%20FRITZ!Box-blueviolet.svg)]()
+[![Inference Engine](https://img.shields.io/badge/inference-set--valued%20abstention-orange.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A reproducible measurement, analysis, and diagnostic workflow for investigating Wi-Fi 6/7 performance dynamics, throughput ceilings, and loaded latency (Bufferbloat) under residential conditions.
+A unified research, measurement, and inference system for investigating **Wi-Fi 6/7 throughput dynamics**, **loaded latency (Bufferbloat)**, and **evidence-based network bottleneck localization**.
 
-> **Project Overview:** An independent computer engineering research project evaluating local 802.11ax throughput behavior, queueing delay inflation under active TCP load, and automated, evidence-based bottleneck diagnosis.
-
----
-
-## 🎯 Research Question
-
-> *Under a fixed FRITZ!Box 7530 AX and M1 Pro MacBook client setup, how do spatial position (Line-of-Sight vs. Non-Line-of-Sight) and traffic direction (Upload vs. Download) govern local receiver throughput and ICMP RTT distributions? Which follow-up controls distinguish wireless bottlenecks from wired infrastructure limits?*
+This repository combines:
+1. **Empirical Residential Wi-Fi 6 Telemetry:** Live dual-vantage measurements across real physical hardware (Apple Silicon M1 Pro client $\leftrightarrow$ AVM FRITZ!Box 7530 AX AP).
+2. **Bufferbloat Localization Lab (BLL):** A controlled reference testbed using Linux network namespaces (`ip netns`), decoupled traffic control (`tc`), differential path algebra, and a deterministic set-valued inference engine that maintains uncertainty (abstention) when evidence is incomplete.
 
 ---
 
-## 🌐 Testbed Topology
+## 🎯 Research Questions
 
-```text
-+-----------------------+                    +---------------------+                    +----------------------+
-|  MacBook Pro (M1 Pro) |  Wi-Fi 6 (5 GHz)   |  AVM FRITZ!Box      |   1000BASE-T GbE   |   Local Test Server  |
-|  Apple Silicon Client | <================> |  7530 AX Router/AP  | <================> |   Gigabit End Host   |
-|  Broadcom BCM4387     |   80 MHz Channel   |  4x GbE Ports       |     Cat6 Cable     |   iperf3 server      |
-+-----------------------+                    +---------------------+                    +----------------------+
-       ▲                                                                                           ▲
-       │                                                                                           │
-       └──────────────────────── Continuous ICMP Probing (5 Hz) ───────────────────────────────────┘
-```
-
-- **Client:** MacBook Pro 14" (2021, M1 Pro), macOS (arm64), 2 spatial streams (NSS=2), 80 MHz max channel width, theoretical PHY ceiling $1200\text{ Mbps}$.
-- **AP:** AVM FRITZ!Box 7530 AX (Wi-Fi 6, 5 GHz UNII-2C Ch 116, 80 MHz width, 4x Gigabit LAN ports).
-- **Server:** Linux host with dedicated Gigabit Ethernet interface.
-- **Physical Positions:**
-  - **L1 (Near-AP LOS):** 1.2m Line-of-Sight, clear Fresnel zone.
-  - **L2 (NLOS):** 8.5m distance across one interior drywall partition.
+1. **Spatial Attenuation & Local Bufferbloat:** *How does physical distance and drywall obstruction (Line-of-Sight vs. Non-Line-of-Sight) alter 802.11ax MCS index, airtime consumption, and queue buildup during active TCP saturation?*
+2. **Differential Path Localization:** *Using low-cost edge measurements without router firmware modification, can we reliably differentiate queueing in the local Wi-Fi hop from queueing on the upstream WAN access link (NetCologne DS-Lite)?*
+3. **Abstention Under Ambiguity:** *When observation vantage points are insufficient to isolate a specific link, can the inference engine explicitly abstain and recommend the minimum-cost discriminating measurement rather than guessing?*
 
 ---
 
-## 📊 Core Research Figures
+## 🔬 Empirical Residential Wi-Fi 6 Findings (Live Hardware)
 
-All figures are automatically generated directly from raw measurement logs via `wifi_lab.plots` and `wifi_lab.mlo_sim`.
+Measurements executed live on **macOS 27 (Darwin)** with an **M1 Pro client** connected to an **AVM FRITZ!Box 7530 AX** (5 GHz, Channel 48, 80 MHz channel width):
 
-| Fig 1: Receiver Throughput & Wired Ceiling | Fig 2: Latency ECDF (Idle vs. Loaded) |
-|:---:|:---:|
-| ![Figure 1](results/figures/fig1_throughput_by_condition.svg) | ![Figure 2](results/figures/fig2_rtt_ecdf.svg) |
-| *L1 throughput plateaus at ~812 Mbps, constrained by the ~940 Mbps Gigabit LAN ceiling. L2 drops by 39.4% due to drywall path loss and MCS rate fallback.* | *Empirical Cumulative Distribution Function showing severe tail latency inflation under saturation TCP load (Bufferbloat).* |
+| Metric | Position 1 (L1: Near AP, LOS) | Position 2 (L2: Adjacent Room, NLOS) | Impact / Physical Mechanism |
+| :--- | :---: | :---: | :---: |
+| **Physical RSSI / Noise** | **-52 dBm / -88 dBm** | **-72 dBm / -89 dBm** | 20 dB RF path loss through drywall |
+| **Signal-to-Noise Ratio (SNR)** | **36 dB** (Clean link) | **17 dB** (Contention boundary) | 19 dB degradation in channel quality |
+| **802.11ax MCS Rate** | **MCS 10** (1024-QAM) | **MCS 2** (QPSK) | Dynamic rate adaptation fallback |
+| **Physical Link Capacity** | **1134.0 Mbps** | **136.0 Mbps** | **88% capacity reduction** |
+| **Idle Wi-Fi RTT (p95)** | **4.4 ms** | **4.3 ms** | Unloaded baseline appears identical |
+| **Loaded Wi-Fi RTT (p95)** | **58.5 ms** | **118.9 ms** | **2x queue latency inflation** |
+| **Wi-Fi Hop Bloat ($\Delta RTT_{\text{wifi}}$)** | **+54.1 ms** | **+114.6 ms** | Longer airtime drives AP queue inflation |
+| **Total End-to-End Bloat** | **+98.0 ms** | **+128.0 ms** | p95 latency under 43–47 Mbps TCP load |
+| **Localization Verdict** | `COMPOUND_BOTTLENECK` | `COMPOUND_BOTTLENECK` | **89.5% of L2 bloat isolated to Wi-Fi** |
 
-| Fig 3: Multi-Phase Latency Lifecycle (123s) | Fig 4: Bufferbloat Impact ($\Delta$ RTT) |
-|:---:|:---:|
-| ![Figure 3](results/figures/fig3_rtt_timeseries.svg) | ![Figure 4](results/figures/fig4_loaded_delta_rtt.svg) |
-| *Real-time transition: Idle (30s) → Warm-up (3s) → Steady-State Load (60s) → Recovery (30s). Latency returns to baseline in ~4.5s.* | *Paired difference ($\Delta = \text{RTT}_{\text{loaded}} - \text{RTT}_{\text{idle}}$) isolating extra queueing delay injected by TCP traffic.* |
+> **Scientific Grounding:** At L2, even though idle ping is pristine (~2.7 ms), loaded traffic causes severe bufferbloat (+114.6 ms) solely on the wireless link because MCS 2 drastically increases packet transmission time (airtime), backing up packets in the 802.11 MAC software queue.
 
-| Fig 5: Wi-Fi 7 Multi-Link Operation (MLO) Queue Simulation |
-|:---:|
-| ![Figure 5](results/figures/fig5_mlo_vs_single_link.svg) |
-| *Opportunistic Link-Selection (5 GHz + 6 GHz) reduces 95th-percentile packet queueing delay by >90% compared to legacy single-link Wi-Fi 6 under medium channel contention.* |
-
----
-
-## ⚡ Quickstart & Reproducibility
-
-The workflow is self-contained and operates with **zero external dependencies** on Python 3.11+ using the standard library.
-
-### 1. One-Line Full Reproduction
-Run the automated test suite, pre-flight environment checks, pilot data collection, statistical processing, vector figure rendering, diagnostic evaluation, MLO simulation, and dataset sanitization:
-
-```bash
-bash scripts/reproduce.sh
-```
-
-### 2. Modular CLI Usage
-
-```bash
-# 1. Inspect environment tools and Wi-Fi 6 hardware capabilities
-python3 -m wifi_lab doctor
-
-# 2. Execute measurement collection (live testbed or deterministic mock replay)
-python3 -m wifi_lab collect --config configs/pilot.toml --output data/raw/pilot
-
-# 3. Process raw logs into normalized tables and render publication figures
-python3 -m wifi_lab analyse --input data/raw/pilot --output data/processed/pilot --figures results/figures
-
-# 4. Run WiSlow-inspired evidence-based diagnostic engine
-python3 -m wifi_lab suggest --input data/processed/pilot/run_summary.csv
-
-# 5. Compile interactive standalone HTML dashboard & report
-python3 -m wifi_lab report --summary data/processed/pilot/run_summary.csv --output results/report.html
-
-# 6. Simulate Wi-Fi 7 (802.11be) Multi-Link Operation (MLO) latency benefits
-python3 -m wifi_lab mlo-sim --output results/figures/fig5_mlo_vs_single_link.svg
-
-# 7. Redact and pseudonymize dataset for open-science release (RFC 2330)
-python3 -m wifi_lab redact --input data/raw/pilot --output data/raw/pilot_redacted
-```
+Raw live time-series runs and provenance manifests are archived immutably in:
+`data/raw/live_home_runs/`
 
 ---
 
-## 🧠 Diagnostic Reasoning: The WiSlow Methodology
+## 🏛️ System Architecture
 
-Inspired by the diagnostic methodology formulated by **Kim, Nam, and Schulzrinne (*WiSlow*, IEEE INFOCOM 2014)**, this tool refuses to blindly attribute symptoms to a single cause. It separates observations, candidate explanations, and missing evidence:
-
-```text
-[ Gözlem / Observation ]
-  ↳ At L1, TCP throughput plateaus at 811.9 Mbps despite a 1200 Mbps theoretical Wi-Fi 6 PHY rate.
-[ Aday Nedenler / Candidate Explanations ]
-  • Gigabit Ethernet uplink bottleneck (1000BASE-T payload ceiling is ~940 Mbps).
-  • 802.11ax MAC layer contention, DIFS/SIFS overhead, and block ACK pacing.
-  • Socket buffer sizing on host.
-[ Eksik Kanıt / Missing Evidence ]
-  ? No wired reference run on this exact client (MacBook Pro USB-C GbE adapter).
-[ Sonraki Ayrıştırıcı Deney / Next Discriminating Test ]
-  ➜ Execute identical 60s load test over USB-C Ethernet. If wired throughput matches ~940 Mbps, 
-    the bottleneck is wired infrastructure, NOT wireless capacity.
-```
-
----
-
-## 🔬 Key Experimental Findings
-
-1. **The Wired Interface Ceiling:** At L1 (1.2m LOS), download throughput achieves $811.9\text{ Mbps}$, operating at $\approx 86\%$ of the physical Gigabit Ethernet ceiling. A plateau here does not prove wireless saturation.
-2. **Spatial Attenuation & Rate Adaptation:** Moving to L2 (8.5m NLOS) reduces throughput by $39.4\%$ ($492.4\text{ Mbps}$) with an increase in average TCP retransmissions from 12 to 58, indicating dynamic downshifting from MCS 11 (1024-QAM) to MCS 7/8.
-3. **Loaded Latency Inflation (Bufferbloat):** Active TCP load inflates median RTT by $+28.9\text{ ms}$ at L1 and $+76.0\text{ ms}$ at L2 (peaking at $141.1\text{ ms}$ at p95). Latency drains back to baseline in $\approx 4.5\text{ seconds}$ post-traffic.
-4. **Failure Accounting:** All 12 attempted runs are preserved with immutable manifests. One simulated socket timeout is logged with `outcome = "tool_error"` and included in condition denominators ($N_{\text{valid}} / N_{\text{attempted}}$) rather than discarded.
-
----
-
-## 📁 Repository Structure
+The unified codebase consists of two complementary subsystems:
 
 ```text
 wifi-diagnostic-lab/
-├── configs/
-│   └── pilot.toml                 # Documented 12-run pilot conditions (L1/L2, DL/UL, 4 phases)
-├── data/
-│   ├── raw/pilot/                 # 12 immutable run bundles (manifest.json, iperf_raw.json, ping_raw.txt)
-│   └── processed/pilot/           # Processed datasets (run_summary.csv, rtt_samples.csv)
-├── docs/
-│   ├── report.md                  # Comprehensive IEEE-style research report
-│   ├── data-dictionary.md         # Formal field, unit, and missing-value definitions
-│   ├── experiment-protocol.md     # 4-phase protocol, boundary guards, and failure accounting
-│   ├── hardware.md                # FRITZ!Box 7530 AX & M1 Pro hardware capability analysis
-│   ├── literature-review.md       # Synthesis of WiSlow, Wi-Fi 6 testbeds, and Wi-Fi 7 MLO
-│   └── protocol-labs/             # Hands-on packet analysis & protocol engineering notes
-│       ├── lab01_tcp_handshake_rtt.md
-│       ├── lab02_mac_retry_vs_tcp_retrans.md
-│       └── lab03_bufferbloat_queueing.md
-├── results/
-│   ├── figures/                   # Standalone publication vector figures (SVG)
-│   └── report.html                # Self-contained interactive HTML research dashboard
+├── src/
+│   ├── wifi_lab/                  # Wi-Fi Diagnostic Suite (WiSlow-inspired)
+│   │   ├── cli.py                 # wifi-lab CLI (doctor, collect, analyse, suggest, mlo-sim, report)
+│   │   ├── runner.py              # Multi-phase execution and offline replay engine
+│   │   ├── analysis.py            # Statistical aggregation and phase-guarded metrics
+│   │   ├── diagnostics.py         # WiSlow evidence-based diagnostic rules
+│   │   ├── mlo_sim.py             # Wi-Fi 7 (802.11be) Multi-Link Operation queue simulator
+│   │   └── redactor.py            # RFC 2330 pseudonymization and hashing engine
+│   └── bll/                       # Bufferbloat Localization Lab (Reference Engine)
+│       ├── cli.py                 # bll CLI (doctor, lab, run, infer, export, report)
+│       ├── topology/              # 6-node netns topology & LPM path verification
+│       ├── helper/                # Hardened JSON-RPC privileged helper daemon
+│       ├── measurements/          # Adapters (ping, irtt, iperf3) & 3-phase engine
+│       ├── storage/               # DuckDB analytics over immutable Parquet tables
+│       ├── inference/             # Differential path algebra & set-valued abstention
+│       └── evaluation/            # Counterexample benchmark & hypothesis testing (H1, H2, H3)
 ├── scripts/
-│   └── reproduce.sh               # One-click end-to-end reproduction pipeline
-├── src/wifi_lab/
-│   ├── cli.py                     # Unified CLI entry point (doctor, collect, analyse, suggest, mlo-sim, redact)
-│   ├── doctor.py                  # Environment readiness and macOS Wi-Fi telemetry checker
-│   ├── runner.py                  # Multi-phase experiment execution and replay runner
-│   ├── mock_engine.py             # Physics-based Wi-Fi 6 mock generator for offline development
-│   ├── analysis.py                # Statistical aggregation and phase-guarded metrics
-│   ├── plots.py                   # Publication-quality vector figure generator
-│   ├── diagnostics.py             # WiSlow-style evidence-based diagnostic engine
-│   ├── report_gen.py              # Standalone interactive HTML report compiler
-│   ├── mlo_sim.py                 # Wi-Fi 7 (802.11be) Multi-Link Operation queue simulator
-│   ├── redactor.py                # RFC 2330 dataset pseudonymization and hashing engine
-│   └── parsers/
-│       ├── iperf.py               # Robust iperf3 JSON parser (TCP + UDP bitrate/jitter/loss)
-│       └── ping_macos.py          # macOS ping parser with phase alignment and boundary guarding
-├── tests/                         # Automated unit test suite (17 tests, 100% passing)
-├── pyproject.toml                 # Standard packaging metadata
-└── README.md
+│   ├── live_home_test.py          # Standalone macOS dual-vantage live home test runner
+│   └── reproduce.sh               # One-click reproduction script
+├── tests/                         # 195 Unit, Contract, Invariant & Fault Injection tests
+└── e2e_tests/                     # 285 End-to-End Acceptance tests across Milestones 1–7
 ```
 
 ---
 
-## 📚 Primary References
+## 🔬 Bufferbloat Localization Lab (BLL) Capabilities
+
+1. **Controlled Reference Lab Topology:** Emulated 6-node topology (`client`, `q_near`, `router`, `observer`, `q_far`, `remote`) using Linux `ip netns` and decoupled `tc` rate shaping (TBF/HTB) + explicit buffer queueing (`pfifo`/`bfifo`) + delay (`netem`).
+2. **Set-Valued Deterministic Inference:** Evaluates differential path latency ($\Delta RTT_{\text{wifi}}$ vs. $\Delta RTT_{\text{wan}}$). If vantage points cannot definitively isolate the queue (e.g. access link vs gateway egress without an observer tap), the engine maintains uncertainty:
+   $$\mathcal{R}_{\text{cand}} = \{\text{near\_link}, \text{gateway\_node}\}, \quad \text{abstained} = \text{True}$$
+3. **Counterexample Suite & Quality Control:** 12 controlled counterexample scenarios (healthy baseline, near FIFO, far FIFO, dual FIFO, fixed delay without queue, loss without queue, endpoint CPU bottleneck, AQM active, protocol discrepancies) and 8 automated QC sanity gates.
+4. **Zero Label Leakage:** Ground truth configurations are physically stored in `ground_truth/` and strictly decoupled from the inference pipeline.
+5. **RFC 2330 Anonymization:** Scrubs private MACs (`02:00:00:xx:xx:xx`), IPs (`192.0.2.0/24`), and SSIDs with a cryptographically verifiable SHA-256 provenance manifest.
+
+---
+
+## ⚡ Quickstart & Usage
+
+### 1. Environment Setup
+
+Install with [uv](https://github.com/astral-sh/uv) (recommended) or standard virtualenv:
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install -e ".[dev,analysis]"
+```
+
+### 2. Verify System Readiness
+
+```bash
+# Check Wi-Fi diagnostic environment
+wifi-lab doctor
+
+# Check Bufferbloat Localization Lab backend and tool readiness
+bll doctor --json
+```
+
+### 3. Run Live Residential Wi-Fi 6 Test (No Dongle Required)
+
+Execute a 30-second 3-phase dual-vantage test (Idle $\to$ Load $\to$ Recovery) measuring local gateway RTT vs. remote WAN RTT:
+
+```bash
+# Position 1: Line-of-sight near router
+python3 scripts/live_home_test.py --position L1 --idle 8 --load 15 --recovery 7
+
+# Position 2: Move to an adjacent room / non-line-of-sight
+python3 scripts/live_home_test.py --position L2 --idle 8 --load 15 --recovery 7
+```
+
+### 4. Run the Full Test Pyramid (480 Tests Passing)
+
+```bash
+# Unit, contract, invariant, and fault injection tests
+pytest tests/
+
+# End-to-End benchmark acceptance suite
+python3 e2e_tests/run_e2e.py
+```
+
+### 5. Run Controlled Reference Benchmark & Export Report
+
+```bash
+# Execute counterexample suite via mock simulation or native Linux backend
+bll run --backend mock_simulation --config configs/pilot.toml --output runs/pilot_01
+
+# Run deterministic inference engine
+bll infer --run-dir runs/pilot_01
+
+# Export sanitized dataset complying with RFC 2330
+bll export --run-dir runs/pilot_01 --output export/redacted_dataset --redact
+
+# Generate offline zero-CDN HTML research report
+bll report --run-dir runs/pilot_01 --output results/bll_report.html
+```
+
+---
+
+## 📚 Scientific References
 
 - **Kim, K., Nam, Y., & Schulzrinne, H.** (2014). *WiSlow: A Wi-Fi Network Performance Troubleshooting Tool for End Users.* IEEE INFOCOM.
-- **Liu, X., & Choi, N.** (2023). *A First Look at Wi-Fi 6 in Action: Throughput, Latency, Energy Efficiency, and Security.* ACM SIGMETRICS / POMACS.
-- **Carrascosa, M., Bellalta, B., et al.** (2023). *Wi-Fi Multi-Link Operation: Status and Open Challenges.* arXiv:2305.02052.
-- **Paxson, V., et al.** (1998). *Framework for IP Performance Metrics.* IETF RFC 2330.
+- **Nichols, K., & Jacobson, V.** (2012). *Controlling Queue Delay (CoDel).* ACM Queue, 10(5).
+- **Høiland-Jørgensen, T., et al.** (2014). *The Flent Network Testing Tool.* Netdev 0.1.
+- **Gettys, J., & Nichols, K.** (2011). *Bufferbloat: Dark Buffers in the Internet.* Communications of the ACM, 55(1).
+- **Paxson, V., Almes, G., Mahdavi, J., & Mathis, M.** (1998). *Framework for IP Performance Metrics.* IETF RFC 2330.
 
 ---
 
 ## 📜 License
-MIT License. Developed independently by Akif Ulutaş (RWTH Aachen University).
+MIT License. Developed by Akif Ulutaş (RWTH Aachen University).
