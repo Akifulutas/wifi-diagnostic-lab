@@ -30,7 +30,7 @@ def generate_all_figures(summary_csv_path: Path, rtt_samples_csv_path: Path, fig
 
     # 3. Phase-labelled time series
     fig3_path = figures_dir / "fig3_rtt_timeseries.svg"
-    _plot_fig3_timeseries(rtt_samples, fig3_path)
+    _plot_fig3_timeseries(rtt_samples, fig3_path, summary_rows=summary_rows)
     print(f"  ↳ Rendered: {fig3_path}")
 
     # 4. Loaded-minus-Idle Delta RTT (Bufferbloat index)
@@ -225,10 +225,21 @@ def _plot_fig2_ecdf(samples: list[dict[str, Any]], out_path: Path) -> None:
     out_path.write_text("\n".join(svg), encoding="utf-8")
 
 
-def _plot_fig3_timeseries(samples: list[dict[str, Any]], out_path: Path) -> None:
+def _plot_fig3_timeseries(
+    samples: list[dict[str, Any]],
+    out_path: Path,
+    summary_rows: list[dict[str, Any]] | None = None,
+) -> None:
     """Figure 3: Multi-Phase RTT Time Series (Idle -> Warmup/Load -> Recovery)."""
     all_runs = sorted(list(set(s["run_id"] for s in samples if s.get("run_id"))))
-    candidate_runs = [r for r in all_runs if "044930" not in r]
+    if summary_rows:
+        ok_runs = {
+            r["run_id"] for r in summary_rows
+            if str(r.get("outcome", "")).lower() == "ok"
+        }
+        candidate_runs = [r for r in all_runs if r in ok_runs]
+    else:
+        candidate_runs = all_runs
     chosen_run = candidate_runs[0] if candidate_runs else (all_runs[0] if all_runs else "")
     run_samples = [s for s in samples if s["run_id"] == chosen_run and s.get("rtt_ms")]
 
@@ -354,8 +365,8 @@ def _plot_fig4_delta_rtt(rows: list[dict[str, Any]], out_path: Path) -> None:
     svg = [
         f'<svg width="{w}" height="{h}" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff;font-family:system-ui,-apple-system,sans-serif;">',
         f'<rect width="{w}" height="{h}" fill="#ffffff"/>',
-        f'<text x="{w/2}" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">Fig 4: Bufferbloat Impact — Loaded-minus-Idle RTT Delta (\u0394 RTT)</text>',
-        f'<text x="{w/2}" y="52" text-anchor="middle" font-size="13" fill="#64748b">Additional queueing delay introduced by saturation TCP load (\u0394 = RTT_loaded - RTT_idle)</text>',
+        f'<text x="{w/2}" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">Fig 4: Bufferbloat Impact — End-to-End Loaded \u0394 RTT (Median)</text>',
+        f'<text x="{w/2}" y="52" text-anchor="middle" font-size="13" fill="#64748b">Remote destination median latency inflation under saturation load (\u0394 = RTT_loaded_median - RTT_idle_median)</text>',
     ]
 
     for y_val in grid_ticks:

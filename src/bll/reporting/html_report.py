@@ -6,6 +6,7 @@ src/bll/reporting/html_report.py
 from __future__ import annotations
 
 import json
+import statistics
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -76,8 +77,9 @@ def generate_report(
         svg_content.append(f'<text x="25" y="205" font-size="11" fill="#718096">0ms</text>')
         svg_content.append(f'<text x="50" y="220" font-size="11" fill="#718096">Start</text>')
         svg_content.append(f'<text x="540" y="220" font-size="11" fill="#718096">End</text>')
+        med_rtt = statistics.median(pts)
         svg_content.append(f'<polyline fill="none" stroke="#2563eb" stroke-width="2.5" points="{" ".join(poly_pts)}"/>')
-        svg_content.append(f'<text x="60" y="30" font-size="12" font-weight="bold" fill="#0f172a">Empirical RTT Telemetry (Peak: {max(pts):.1f} ms, Median: {sum(pts)/len(pts):.1f} ms)</text>')
+        svg_content.append(f'<text x="60" y="30" font-size="12" font-weight="bold" fill="#0f172a">Empirical RTT Telemetry (Peak: {max(pts):.1f} ms, Median: {med_rtt:.1f} ms)</text>')
     else:
         svg_content.append(f'<text x="300" y="120" text-anchor="middle" font-size="13" fill="#718096">No probe RTT telemetry recorded in this run directory</text>')
 

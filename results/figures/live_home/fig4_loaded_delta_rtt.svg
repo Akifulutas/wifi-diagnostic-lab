@@ -1,7 +1,7 @@
 <svg width="800" height="480" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff;font-family:system-ui,-apple-system,sans-serif;">
 <rect width="800" height="480" fill="#ffffff"/>
-<text x="400.0" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">Fig 4: Bufferbloat Impact — Loaded-minus-Idle RTT Delta (Δ RTT)</text>
-<text x="400.0" y="52" text-anchor="middle" font-size="13" fill="#64748b">Additional queueing delay introduced by saturation TCP load (Δ = RTT_loaded - RTT_idle)</text>
+<text x="400.0" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">Fig 4: Bufferbloat Impact — End-to-End Loaded Δ RTT (Median)</text>
+<text x="400.0" y="52" text-anchor="middle" font-size="13" fill="#64748b">Remote destination median latency inflation under saturation load (Δ = RTT_loaded_median - RTT_idle_median)</text>
 <line x1="90" y1="410.0" x2="760" y2="410.0" stroke="#e2e8f0" stroke-width="1"/>
 <text x="75" y="415.0" text-anchor="end" font-size="12" fill="#475569">0 ms</text>
 <line x1="90" y1="325.0" x2="760" y2="325.0" stroke="#e2e8f0" stroke-width="1"/>

@@ -208,12 +208,8 @@ def run_inference(
     # 2. Extract Data-Driven Telemetry Metrics
     deltas, near_qdisc_active, far_qdisc_active = _extract_path_telemetry(run_path)
 
-    # Empty run guard: missing or zero probe samples must trigger abstention, unless explicitly healthy baseline
-    is_explicit_healthy = (
-        manifest_data.get("scenario_id") in ("healthy_baseline", "healthy")
-        or "healthy" in run_id.lower()
-    )
-    if not deltas and not near_qdisc_active and not far_qdisc_active and not is_explicit_healthy:
+    # Empty run guard: missing or zero probe samples must trigger abstention on any run (zero label leakage)
+    if not deltas and not near_qdisc_active and not far_qdisc_active:
         return InferenceVerdict(
             run_id=run_id,
             timestamp_utc=ts_utc,

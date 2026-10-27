@@ -305,6 +305,9 @@ load:
         )
         gt_dict = json.loads(gt.model_dump_json())
         gt_dict["scenario_id"] = str(scenario_name)
+        if injected_parameters:
+            for k, v in injected_parameters.items():
+                gt_dict[k] = v
         gt_path = self.ground_truth_base_dir / f"{self.run_id}.json"
         gt_path.write_text(json.dumps(gt_dict, indent=2), encoding="utf-8")
         return gt_path

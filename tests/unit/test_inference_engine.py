@@ -114,6 +114,25 @@ def test_inference_healthy_baseline_negative_control(tmp_path: Path):
         "duration_seconds": 110.0,
     }
     (run_dir / "manifest.json").write_text(json.dumps(manifest))
+
+    # Real baseline telemetry with low, flat RTT (4ms) across idle, load, recovery
+    samples_dir = run_dir / "samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    n_samples = 30
+    phases = ["idle"] * 10 + ["load"] * 10 + ["recovery"] * 10
+    rtts = [4.0] * 30
+    table = pa.Table.from_arrays(
+        [
+            pa.array(list(range(n_samples)), pa.int64()),
+            pa.array(phases, pa.string()),
+            pa.array(rtts, pa.float64()),
+            pa.array(list(range(1, n_samples + 1)), pa.int32()),
+            pa.array(["client_to_remote"] * n_samples, pa.string()),
+        ],
+        names=["timestamp_ns", "phase", "rtt_ms", "seq", "path"],
+    )
+    pq.write_table(table, samples_dir / "ping.parquet")
+
     verdict = run_inference(run_dir)
     assert verdict.latency_increase_observed is False
     assert verdict.queue_evidence == QueueEvidenceLevel.NONE

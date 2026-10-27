@@ -150,6 +150,7 @@ class MeasurementEngine:
         is_dual_bloat = "dual" in scenario_name.lower()
         is_fixed_delay = "fixed" in scenario_name.lower()
         is_indistinguishable = "indistinguishable" in scenario_name.lower()
+        is_discrepancy = "discrepancy" in scenario_name.lower()
 
         # =====================================================================
         # Phase 1: Baseline Idle
@@ -277,6 +278,8 @@ class MeasurementEngine:
                         s.rtt_ms += 300.0
                     elif is_near_bloat or is_far_bloat or is_indistinguishable:
                         s.rtt_ms += 150.0
+                    elif is_discrepancy:
+                        s.rtt_ms += 15.0
                 ping_samples.append(s)
 
         # Near-link probe during load
@@ -284,8 +287,11 @@ class MeasurementEngine:
         for line in gw_out.splitlines():
             s = ping_adapter_near.parse_line(line, Phase.SATURATION_LOAD.value, clock.read().monotonic_ns)
             if s:
-                if is_mock and s.rtt_ms is not None and (is_near_bloat or is_dual_bloat or is_indistinguishable):
-                    s.rtt_ms += 150.0
+                if is_mock and s.rtt_ms is not None:
+                    if is_near_bloat or is_dual_bloat or is_indistinguishable:
+                        s.rtt_ms += 150.0
+                    elif is_discrepancy:
+                        s.rtt_ms += 15.0
                 ping_samples.append(s)
 
         # Far-link probe during load
@@ -392,22 +398,31 @@ class MeasurementEngine:
         )
 
         # Isolate ground truth
-        has_bloat = "fifo" in scenario_name.lower() or is_near_bloat or is_far_bloat or is_dual_bloat
+        is_discrepancy = "discrepancy" in scenario_name.lower()
+        has_bloat = "fifo" in scenario_name.lower() or is_near_bloat or is_far_bloat or is_dual_bloat or is_discrepancy
         not_excl = (
-            [RegionName.NEAR_LINK] if "near" in scenario_name
+            [RegionName.NEAR_LINK] if ("near" in scenario_name or is_discrepancy)
             else ([RegionName.FAR_LINK] if "far" in scenario_name
             else ([RegionName.NEAR_LINK, RegionName.FAR_LINK] if "dual" in scenario_name
             else ([RegionName.LOCAL_HOST, RegionName.NEAR_LINK, RegionName.GATEWAY_NODE, RegionName.FAR_LINK, RegionName.REMOTE_HOST] if is_cpu_sat else [])))
         )
+        inj_params = {}
+        if is_discrepancy:
+            inj_params = {
+                "injected_icmp_delay_ms": 15.0,
+                "injected_tcp_delay_ms": 150.0,
+                "injected_queue_delay_ms": 150.0,
+            }
         pipeline.save_ground_truth(
             scenario_name=scenario_name,
-            bottleneck_regions=[RegionName.NEAR_LINK] if "near" in scenario_name else ([RegionName.FAR_LINK] if "far" in scenario_name else ([RegionName.NEAR_LINK, RegionName.FAR_LINK] if "dual" in scenario_name else [])),
+            bottleneck_regions=[RegionName.NEAR_LINK] if ("near" in scenario_name or is_discrepancy) else ([RegionName.FAR_LINK] if "far" in scenario_name else ([RegionName.NEAR_LINK, RegionName.FAR_LINK] if "dual" in scenario_name else [])),
             expected_latency_increase=has_bloat or is_cpu_sat,
             expected_queue_evidence=QueueEvidenceLevel.STRONG if has_bloat else QueueEvidenceLevel.NONE,
-            expected_supported_regions=[RegionName.NEAR_LINK] if "near" in scenario_name else ([RegionName.FAR_LINK] if "far" in scenario_name else ([RegionName.NEAR_LINK, RegionName.FAR_LINK] if "dual" in scenario_name else [])),
+            expected_supported_regions=[RegionName.NEAR_LINK] if ("near" in scenario_name or is_discrepancy) else ([RegionName.FAR_LINK] if "far" in scenario_name else ([RegionName.NEAR_LINK, RegionName.FAR_LINK] if "dual" in scenario_name else [])),
             expected_not_excluded_regions=not_excl,
             expected_abstained=is_cpu_sat,
             expected_abstain_reason=AbstainReason.QUALITY_FLAG_INVALIDATION if is_cpu_sat else None,
+            injected_parameters=inj_params,
         )
 
         return run_id, pipeline

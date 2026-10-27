@@ -69,9 +69,9 @@ Live residential experiments were conducted on **macOS (Darwin arm64)** using an
 | **Total End-to-End Bloat** | **+98.0 ms** | **+128.0 ms** | *Observation:* Total round-trip time inflation observed by edge client |
 | **Localization Candidate Set** | `{near_link, far_link}` | `{near_link, far_link}` | *Engine Output:* Multi-hop delay elevation observed on both local hop and WAN |
 
-> **Key Observation:** An unloaded ping test does not reveal wireless rate adaptation: idle RTT at L2 is ~4.3 ms (identical to L1). Under active load generation, however, the lower PHY rate (MCS 2) requires significantly more airtime per frame, producing noticeable queue delay (+114.6 ms) on the local wireless hop.
+> **Key Observation:** An unloaded ping test does not reveal wireless rate adaptation: idle RTT at L2 is ~4.3 ms (identical to L1). Under active TCP load generation, latency elevation was empirically observed on the local gateway hop (+114.6 ms at L2 vs. +54.1 ms at L1), coinciding with a reduced PHY rate (MCS 2). Additional controlled trials in an isolated chamber are required to isolate the exact queue contribution from contending interference and operating system scheduling delays.
 
-Raw time-series telemetry and cryptographically signed manifests are archived in:  
+Raw time-series telemetry and immutable manifests with SHA-256 digests are archived in:  
 [`data/raw/live_home_runs/`](data/raw/live_home_runs/)
 
 ---
@@ -98,7 +98,7 @@ flowchart TD
         BLLStorage["DuckDB Analytical Storage (Parquet Tables)"]
         BLLInference["Deterministic Set-Valued Inference Engine"]
         BLLBenchmark["Double-Blind Benchmark Evaluator"]
-        BLLRedactor["RFC 2330 Privacy Redactor & Static HTML Report"]
+        BLLRedactor["Privacy Redactor & Data Sanitization (HTML Report)"]
 
         BLLCLI --> BLLTopology
         BLLTopology --> BLLMeasurements
@@ -275,7 +275,7 @@ The automated analysis pipeline generates publication-ready vector figures (SVG)
 | **[Figure 1](results/figures/live_home/fig1_throughput_by_condition.svg)** | Throughput by Condition & Direction | L1 reaches ~47.0 Mbps; L2 reaches ~43.3 Mbps on home internet tier. (Pilot calibration reaches ~812 Mbps). |
 | **[Figure 2](results/figures/live_home/fig2_rtt_ecdf.svg)** | Latency Empirical CDF | Bifurcation between idle baseline (< 5 ms) and loaded saturation (> 80 ms). |
 | **[Figure 3](results/figures/live_home/fig3_rtt_timeseries.svg)** | Dynamic 3-Phase Time-Series Dynamics | Shows idle baseline (~8s), active load ramp (~15s), and buffer drain recovery (~8s) with real relative timestamps. |
-| **[Figure 4](results/figures/live_home/fig4_loaded_delta_rtt.svg)** | Loaded $\Delta RTT$ (Bufferbloat) | Shows +54.1 ms delay at L1 vs. +114.6 ms at L2 on the local Wi-Fi hop. |
+| **[Figure 4](results/figures/live_home/fig4_loaded_delta_rtt.svg)** | Loaded $\Delta RTT$ (Bufferbloat Impact) | Plots end-to-end median loaded $\Delta RTT$ to remote destination (+32.3 ms at L1, +44.0 ms at L2); local gateway hop exhibits +54.1 ms (L1) and +114.6 ms (L2) p95 queue elevation. |
 | **[Figure 5](results/figures/fig5_mlo_vs_single_link.svg)** | Wi-Fi 7 MLO Simulation | Compares Single-Link 5 GHz vs. MLO (2.4 GHz + 5 GHz) queueing latency reduction. |
 
 ---
