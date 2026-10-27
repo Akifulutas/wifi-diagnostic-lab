@@ -737,6 +737,7 @@ def run_cmd(
 )
 @click.option(
     "--vantage-profile",
+    "--vantage",
     type=click.Choice(["remote_only", "gateway_remote", "local_remote", "full_observer"]),
     default="full_observer",
     help="Vantage observation profile (used by ablation harness).",

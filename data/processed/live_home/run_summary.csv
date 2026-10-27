@@ -1,0 +1,4 @@
+run_id,day_label,position_id,direction,repetition,outcome,receiver_throughput_mbps,sender_throughput_mbps,tcp_retransmits,idle_rtt_median_ms,idle_rtt_p95_ms,loaded_rtt_median_ms,loaded_rtt_p95_ms,recovery_rtt_median_ms,delta_rtt_median_ms,sent_probes,received_probes,loss_rate_pct,failure_reason
+live_home_20261022T044930Z,live_home,L1,download,1,OK,0.0,0.0,0,13.61,91.58,45.04,116.78,11.09,31.43,82,82,0.0,
+live_home_20261022T045032Z,live_home,L1,download,1,OK,46.99,46.99,0,10.78,12.0,43.04,109.97,11.52,32.26,146,146,0.0,
+live_home_L2_20261022T051950Z,live_home,L2,download,1,OK,43.33,43.33,0,10.25,12.67,54.26,140.67,11.55,44.01,149,149,0.0,

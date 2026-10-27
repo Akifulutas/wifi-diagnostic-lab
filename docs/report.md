@@ -5,12 +5,13 @@
 **Affiliation:** RWTH Aachen University, Department of Computer Engineering  
 **Project Focus:** Experimental Computer Networks & Wireless Performance Diagnostics  
 **Date:** October 2026  
-**Status:** Reproducible Research Report (Pilot Dataset v0.2)
+**Status:** Educational Research Report (Synthetic Reference Pilot v0.2 & Empirical Telemetry v1.0)  
+**Notice:** This document is an educational research report prepared as part of undergraduate exploration in network measurement and bufferbloat localization at RWTH Aachen University.
 
 ---
 
 ### Abstract
-This study investigates the interplay between spatial placement, transmission direction, and active TCP load on local network throughput and latency distributions in an 802.11ax (Wi-Fi 6) residential environment. Using a commercial Wi-Fi 6 access point (AVM FRITZ!Box 7530 AX) and an Apple Silicon client (MacBook Pro M1 Pro), we execute a 4-phase measurement protocol (Idle $\rightarrow$ Warm-up $\rightarrow$ Measured Load $\rightarrow$ Recovery) across two distinct positions and bidirectional traffic patterns. Our findings reveal: (1) At 1.2m Line-of-Sight, receiver throughput plateaus at $811.9\text{ Mbps}$, bounded primarily by the 1000BASE-T Gigabit Ethernet uplink rather than unconstrained wireless capacity; (2) At 8.5m across a drywall partition, throughput drops by $39.4\%$ ($492.4\text{ Mbps}$) accompanied by a 5.4-fold increase in TCP retransmissions, reflecting dynamic MCS rate adaptation and airtime inflation; (3) TCP saturation introduces substantial queueing delay (Bufferbloat), inflating median ICMP RTT from $2.4\text{ ms}$ to $31.3\text{ ms}$ at L1, and from $4.1\text{ ms}$ to $80.1\text{ ms}$ at L2. Applying the diagnostic principles of the *WiSlow* framework (Kim et al., IEEE INFOCOM 2014), we demonstrate how observation, candidate causes, and missing evidence must be rigorously separated before attributing bottlenecks.
+This study investigates the interplay between spatial placement, transmission direction, and active TCP load on local network throughput and latency distributions in an 802.11ax (Wi-Fi 6) residential environment. Using a commercial Wi-Fi 6 access point (AVM FRITZ!Box 7530 AX) and an Apple Silicon client (MacBook Pro M1 Pro), we examine a 4-phase measurement protocol (Idle $\rightarrow$ Warm-up $\rightarrow$ Measured Load $\rightarrow$ Recovery) across two distinct positions and bidirectional traffic patterns. We evaluate both synthetic reference pilot traces (for pipeline calibration and stress testing) and empirical live residential telemetry. Our findings reveal: (1) At 1.2m Line-of-Sight, receiver throughput plateaus at $811.9\text{ Mbps}$, bounded primarily by the 1000BASE-T Gigabit Ethernet uplink rather than unconstrained wireless capacity; (2) At 8.5m across a drywall partition, throughput drops by $39.4\%$ ($492.4\text{ Mbps}$) accompanied by a 5.4-fold increase in TCP retransmissions, reflecting dynamic MCS rate adaptation and airtime inflation; (3) TCP saturation introduces substantial queueing delay (Bufferbloat), inflating median ICMP RTT from $2.4\text{ ms}$ to $31.3\text{ ms}$ at L1, and from $4.1\text{ ms}$ to $80.1\text{ ms}$ at L2. Applying the diagnostic principles of the *WiSlow* framework (Kim et al., IEEE INFOCOM 2014), we demonstrate how observation, candidate causes, and missing evidence must be rigorously separated before attributing bottlenecks.
 
 ---
 
@@ -62,6 +63,8 @@ To capture transient dynamics and steady-state behavior without skewing statisti
 ---
 
 ### 4. Experimental Results and Discussion
+
+> **Dataset Provenance Note:** The 12-run pilot study summarized below (`data/raw/pilot/`) serves as a reproducible synthetic reference dataset generated to calibrate data ingestion, outlier filtering, and figure rendering. Real-world empirical measurements conducted directly in a residential apartment are stored in `data/raw/live_home_runs/` (featuring multi-vantage gateway vs. WAN probing under live internet traffic).
 
 A complete 12-run pilot study (2 positions $\times$ 2 directions $\times$ 3 repetitions) was executed and processed through the automated analysis pipeline.
 
@@ -149,6 +152,6 @@ By formalizing this logic into `wifi_lab.diagnostics`, the tool produces automat
 
 1. **Liu, X., & Choi, N.** (2023). *A First Look at Wi-Fi 6 in Action: Throughput, Latency, Energy Efficiency, and Security.* ACM SIGMETRICS / POMACS, 7(1).
 2. **Kim, K., Nam, Y., & Schulzrinne, H.** (2014). *WiSlow: A Wi-Fi Network Performance Troubleshooting Tool for End Users.* IEEE INFOCOM.
-3. **Carrascosa, M., Bellalta, B., et al.** (2023). *Wi-Fi Multi-Link Operation: Status and Open Challenges.* arXiv:2305.02052.
+3. **Carrascosa, M., Bellalta, B., et al.** (2023). *Wi-Fi Multi-Link Operation: Status and Open Challenges.* IEEE Communications Magazine, 61(12).
 4. **Paxson, V., Almes, G., Mahdavi, J., & Mathis, M.** (1998). *Framework for IP Performance Metrics.* IETF RFC 2330.
 5. **ESnet.** (2024). *iperf3 Documentation and Output Semantics.* https://software.es.net/iperf/

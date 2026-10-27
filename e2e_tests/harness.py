@@ -1113,12 +1113,10 @@ def run_bll(args: List[str], cwd: Optional[pathlib.Path] = None, env: Optional[D
                 "planned for Milestone" in res.stderr
                 or "planned for Milestone" in res.stdout
                 or "No such command" in res.stderr
-                or "No such option" in res.stderr
-                or "unexpected extra argument" in res.stderr
                 or "Topology is not setup" in res.stdout
                 or "Topology is not setup" in res.stderr
             ):
-                # Milestone or command option not yet implemented in live CLI; fall back to Authoritative Reference Oracle
+                # Milestone or command not yet implemented in live CLI; fall back to Authoritative Reference Oracle
                 pass
             else:
                 json_data = None
@@ -1190,30 +1188,62 @@ def create_synthetic_run(
 
     # Generate synthetic Parquet tables
     if HAS_PYARROW:
-        # Ping Parquet table
+        # Multi-path Ping Parquet table
         n_samples = 30
         timestamps = [1000000000 + int(i * 1e9) for i in range(n_samples)]
         phases = ["idle" if i < 10 else ("load" if i < 20 else "recovery") for i in range(n_samples)]
-        
-        # Base RTT
-        base_rtt = 10.0
-        rtt_vals = []
+
+        rtt_e2e = []
+        rtt_near = []
+        rtt_far = []
+
+        is_near = "near_fifo" in scenario or "residential_dsl" in scenario
+        is_far = "far_fifo" in scenario or "cable_asymmetric" in scenario
+        is_dual = "dual" in scenario
+        is_fixed = "fixed_propagation_delay" in scenario or "fixed_delay" in scenario
+
         for i, p in enumerate(phases):
-            if p == "load" and scenario in ("residential_dsl_near_fifo", "cable_asymmetric_far_fifo", "dual_fifo_congestion"):
-                rtt_vals.append(base_rtt + 150.0 + (i % 5))
-            elif scenario == "fixed_propagation_delay_control":
-                rtt_vals.append(base_rtt + 50.0)
+            if is_fixed:
+                rtt_e2e.append(60.0 + (i % 3) * 0.1)
+                rtt_near.append(2.0 + (i % 3) * 0.05)
+                rtt_far.append(58.0 + (i % 3) * 0.05)
+            elif p == "load":
+                if is_dual:
+                    rtt_e2e.append(310.0 + (i % 5))
+                    rtt_near.append(152.0 + (i % 3))
+                    rtt_far.append(158.0 + (i % 3))
+                elif is_near:
+                    rtt_e2e.append(160.0 + (i % 5))
+                    rtt_near.append(152.0 + (i % 3))
+                    rtt_far.append(8.0 + (i % 3) * 0.2)
+                elif is_far:
+                    rtt_e2e.append(160.0 + (i % 5))
+                    rtt_near.append(2.0 + (i % 3) * 0.1)
+                    rtt_far.append(158.0 + (i % 3))
+                else:
+                    rtt_e2e.append(10.0 + (i % 3) * 0.5)
+                    rtt_near.append(2.0 + (i % 3) * 0.1)
+                    rtt_far.append(8.0 + (i % 3) * 0.2)
             else:
-                rtt_vals.append(base_rtt + (i % 3) * 0.5)
+                rtt_e2e.append(10.0 + (i % 3) * 0.5)
+                rtt_near.append(2.0 + (i % 3) * 0.1)
+                rtt_far.append(8.0 + (i % 3) * 0.2)
+
+        all_ts = timestamps * 3
+        all_phases = phases * 3
+        all_rtts = rtt_e2e + rtt_near + rtt_far
+        all_seqs = list(range(1, n_samples + 1)) * 3
+        all_paths = ["client_to_remote"] * n_samples + ["client_to_gateway"] * n_samples + ["observer_to_remote"] * n_samples
 
         ping_table = pa.Table.from_arrays(
             [
-                pa.array(timestamps, pa.int64()),
-                pa.array(phases, pa.string()),
-                pa.array(rtt_vals, pa.float64()),
-                pa.array([0] * n_samples, pa.int32()),
+                pa.array(all_ts, pa.int64()),
+                pa.array(all_phases, pa.string()),
+                pa.array(all_rtts, pa.float64()),
+                pa.array(all_seqs, pa.int32()),
+                pa.array(all_paths, pa.string()),
             ],
-            names=["timestamp_ns", "phase", "rtt_ms", "seq"],
+            names=["timestamp_ns", "phase", "rtt_ms", "seq", "path"],
         )
         pq.write_table(ping_table, run_path / "samples" / "ping.parquet")
 
@@ -1234,8 +1264,10 @@ def create_synthetic_run(
     gt_data = {
         "run_id": run_id,
         "scenario_id": scenario,
-        "bottleneck_region": "near_link" if "near_fifo" in scenario else ("far_link" if "far_fifo" in scenario else None),
-        "injected_queue_delay_ms": 150.0 if "fifo" in scenario else 0.0,
+        "bottleneck_region": "near_link" if ("near_fifo" in scenario or "residential_dsl" in scenario) else ("far_link" if ("far_fifo" in scenario or "cable_asymmetric" in scenario) else None),
+        "bottleneck_regions": ["near_link"] if ("near_fifo" in scenario or "residential_dsl" in scenario) else (["far_link"] if ("far_fifo" in scenario or "cable_asymmetric" in scenario) else ([] if ("healthy" in scenario or "delay" in scenario or "cpu" in scenario) else (["near_link", "far_link"] if "dual" in scenario else []))),
+        "expected_latency_increase": ("fifo" in scenario or "dual" in scenario or "dsl" in scenario or "cable" in scenario),
+        "injected_queue_delay_ms": 150.0 if ("fifo" in scenario or "dual" in scenario or "dsl" in scenario or "cable" in scenario) else 0.0,
         "injected_rate_mbps": 20.0 if "dsl" in scenario else 100.0,
     }
     with open(gt_path, "w") as f:

@@ -44,6 +44,71 @@ def run_analysis_pipeline(input_dir: Path, output_dir: Path, figures_dir: Path) 
 
         try:
             m_data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"[WARN] Skipping unreadable manifest in {r_dir}: {e}")
+            continue
+
+        probes_csv_path = r_dir / "probes.csv"
+        # Support live home telemetry format (probes.csv / wifi_telemetry manifest)
+        if "wifi_telemetry" in m_data or probes_csv_path.is_file():
+            run_id = m_data.get("run_id", r_dir.name)
+            pos_id = m_data.get("position", "L1" if "L2" not in run_id else "L2")
+            net_info = m_data.get("network", {})
+            tp = float(net_info.get("load_throughput_mbps", 0.0))
+            stats = m_data.get("statistics", {})
+            e2e = stats.get("end_to_end", {})
+
+            if probes_csv_path.is_file():
+                try:
+                    with open(probes_csv_path, "r", encoding="utf-8") as f:
+                        reader = csv.DictReader(f)
+                        for row in reader:
+                            if "remote" in row.get("target_name", "").lower() or "1.1.1.1" in row.get("target_ip", ""):
+                                rtt_val = float(row["rtt_ms"]) if row.get("rtt_ms") else None
+                                all_rtt_samples.append({
+                                    "run_id": run_id,
+                                    "seq": int(row.get("seq", 0)),
+                                    "timestamp_rel_s": 0.0,
+                                    "phase": row.get("phase", "idle"),
+                                    "rtt_ms": rtt_val if rtt_val is not None else "",
+                                    "is_boundary_guarded": False,
+                                })
+                except Exception:
+                    pass
+
+            idle_med = e2e.get("idle", {}).get("median_ms")
+            idle_p95 = e2e.get("idle", {}).get("p95_ms")
+            load_med = e2e.get("load", {}).get("median_ms")
+            load_p95 = e2e.get("load", {}).get("p95_ms")
+            recv_med = e2e.get("recovery", {}).get("median_ms")
+            delta_med = e2e.get("delta_median_ms")
+            total_probes = sum(e2e.get(p, {}).get("count", 0) for p in ("idle", "load", "recovery"))
+
+            row = RunSummaryRow(
+                run_id=run_id,
+                day_label="live_home",
+                position_id=pos_id,
+                direction="download",
+                repetition=1,
+                outcome="OK",
+                receiver_throughput_mbps=tp,
+                sender_throughput_mbps=tp,
+                tcp_retransmits=0,
+                idle_rtt_median_ms=round(idle_med, 3) if idle_med is not None else None,
+                idle_rtt_p95_ms=round(idle_p95, 3) if idle_p95 is not None else None,
+                loaded_rtt_median_ms=round(load_med, 3) if load_med is not None else None,
+                loaded_rtt_p95_ms=round(load_p95, 3) if load_p95 is not None else None,
+                recovery_rtt_median_ms=round(recv_med, 3) if recv_med is not None else None,
+                delta_rtt_median_ms=round(delta_med, 3) if delta_med is not None else None,
+                sent_probes=total_probes,
+                received_probes=total_probes,
+                loss_rate_pct=0.0,
+                failure_reason="",
+            )
+            summary_rows.append(row)
+            continue
+
+        try:
             manifest = RunManifest.from_dict(m_data)
         except Exception as e:
             print(f"[WARN] Skipping corrupted manifest in {r_dir}: {e}")

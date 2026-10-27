@@ -183,7 +183,10 @@ class MultiStreamLoadGenerator:
         import ssl
         import urllib.request
 
-        ctx = ssl._create_unverified_context()
+        try:
+            ctx = ssl.create_default_context()
+        except Exception:
+            ctx = None
         while not self._stop_event.is_set():
             try:
                 req = urllib.request.Request(self.url, headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"})
@@ -207,17 +210,20 @@ class MultiStreamLoadGenerator:
 def calc_stats(samples: List[ProbeSample]) -> PhaseSummary:
     if not samples:
         return PhaseSummary()
-    vals = [s.rtt_ms for s in samples]
-    vals.sort()
-    count = len(vals)
+    # RFC 3393 packet delay variation (jitter) over chronological arrival sequence
+    vals_chrono = [s.rtt_ms for s in samples]
+    count = len(vals_chrono)
+    jitters = [abs(vals_chrono[i] - vals_chrono[i - 1]) for i in range(1, count)] if count > 1 else [0.0]
+    jitter_v = statistics.mean(jitters)
+
+    # Order statistics and percentiles calculated on sorted copy
+    vals = sorted(vals_chrono)
     min_v = vals[0]
     med_v = statistics.median(vals)
     p95_idx = int(math.ceil(0.95 * count)) - 1
     p95_v = vals[min(p95_idx, count - 1)]
     max_v = vals[-1]
-    # RFC 3393 jitter: mean of absolute differences of successive samples
-    jitters = [abs(vals[i] - vals[i - 1]) for i in range(1, count)] if count > 1 else [0.0]
-    jitter_v = statistics.mean(jitters)
+
     return PhaseSummary(
         count=count,
         min_ms=round(min_v, 2),
@@ -333,6 +339,12 @@ def run_live_home_test(
     rm_idle = calc_stats([s for s in rm_worker.samples if s.phase == "idle"])
     rm_load = calc_stats([s for s in rm_worker.samples if s.phase == "load"])
     rm_recv = calc_stats([s for s in rm_worker.samples if s.phase == "recovery"])
+
+    if gw_idle.count == 0 or gw_load.count == 0 or rm_idle.count == 0 or rm_load.count == 0:
+        raise RuntimeError(
+            f"Measurement failed: insufficient probe samples captured (GW: idle={gw_idle.count}, load={gw_load.count}; "
+            f"Remote: idle={rm_idle.count}, load={rm_load.count}). Check interface connectivity."
+        )
 
     # Differential Path Calculations
     delta_wifi_med = max(0.0, gw_load.median_ms - gw_idle.median_ms)

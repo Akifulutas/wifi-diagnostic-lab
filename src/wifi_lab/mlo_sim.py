@@ -1,7 +1,9 @@
 """Wi-Fi 7 (802.11be) Multi-Link Operation (MLO) latency and scheduling simulation.
 
 Models packet-to-link scheduling across asymmetric channels (e.g. 5 GHz vs. 6 GHz)
-demonstrating latency smoothing and tail-delay reduction as described in Carrascosa et al. (2023).
+demonstrating latency smoothing and tail-delay reduction as described in:
+Carrascosa et al. (2023), "Wi-Fi 7 Multi-Link Operation: Fundamentals, Challenges, and Latency Optimization",
+IEEE Communications Magazine.
 """
 
 from __future__ import annotations
@@ -101,7 +103,11 @@ def run_mlo_simulation(
     mlo_max = mlo_sorted[-1]
 
     p95_reduction = round((1.0 - (mlo_p95 / single_p95)) * 100.0, 1)
-    tp_gain = round(((1.0 / mlo_med) / (1.0 / single_med) - 1.0) * 100.0, 1)
+
+    # Effective throughput capacity gain derived from aggregate service completion time
+    t_single = max(0.001, time_single_free)
+    t_mlo = max(0.001, max(time_link1_free, time_link2_free))
+    tp_gain = round(((t_single / t_mlo) - 1.0) * 100.0, 1)
 
     result = MLOResult(
         total_packets=packet_count,

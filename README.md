@@ -1,13 +1,14 @@
 # Wi-Fi Diagnostic Lab & Bufferbloat Localization Engine
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-480%20passed%20%7C%200%20failed-brightgreen.svg)]()
-[![E2E Verification](https://img.shields.io/badge/e2e%20benchmark-99.65%25%20pass-success.svg)]()
-[![Hardware Testbed](https://img.shields.io/badge/live%20hardware-Wi--Fi%206%20(802.11ax)%20%2B%20FRITZ!Box-blueviolet.svg)]()
+[![Test Suite](https://img.shields.io/badge/test%20pyramid-unit%20%26%20e2e%20passing-green.svg)]()
+[![Hardware Testbed](https://img.shields.io/badge/live%20telemetry-Wi--Fi%206%20%2B%20FRITZ!Box-blueviolet.svg)]()
 [![Inference Engine](https://img.shields.io/badge/inference-set--valued%20abstention-orange.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A unified research, measurement, and inference system for investigating **Wi-Fi 6/7 throughput dynamics**, **loaded latency (Bufferbloat)**, and **evidence-based network bottleneck localization**.
+A student research and experimental engineering testbed for investigating **Wi-Fi 6/7 throughput dynamics**, **loaded latency (Bufferbloat)**, and **evidence-based network bottleneck localization**.
+
+> **Project Context & Scope:** Developed as an undergraduate research project (RWTH Aachen University) exploring edge network diagnostics. The project combines real-world residential Wi-Fi 6 empirical probing with an emulated reference testbed (`bll`) to evaluate how much bottleneck localization is mathematically justifiable under constrained vantage points without router firmware modifications.
 
 This repository combines:
 1. **Empirical Residential Wi-Fi 6 Telemetry:** Live dual-vantage measurements across real physical hardware (Apple Silicon M1 Pro client $\leftrightarrow$ AVM FRITZ!Box 7530 AX AP).
@@ -37,7 +38,7 @@ Measurements executed live on **macOS 27 (Darwin)** with an **M1 Pro client** co
 | **Loaded Wi-Fi RTT (p95)** | **58.5 ms** | **118.9 ms** | **2x queue latency inflation** |
 | **Wi-Fi Hop Bloat ($\Delta RTT_{\text{wifi}}$)** | **+54.1 ms** | **+114.6 ms** | Longer airtime drives AP queue inflation |
 | **Total End-to-End Bloat** | **+98.0 ms** | **+128.0 ms** | p95 latency under 43–47 Mbps TCP load |
-| **Localization Verdict** | `COMPOUND_BOTTLENECK` | `COMPOUND_BOTTLENECK` | **89.5% of L2 bloat isolated to Wi-Fi** |
+| **Localization Verdict** | `COMPOUND_BOTTLENECK` | `COMPOUND_BOTTLENECK` | **+114.6 ms loaded delay on local Wi-Fi hop vs. +13.4 ms on WAN link** |
 
 > **Scientific Grounding:** At L2, even though idle ping is pristine (~2.7 ms), loaded traffic causes severe bufferbloat (+114.6 ms) solely on the wireless link because MCS 2 drastically increases packet transmission time (airtime), backing up packets in the 802.11 MAC software queue.
 
@@ -120,15 +121,18 @@ python3 scripts/live_home_test.py --position L1 --idle 8 --load 15 --recovery 7
 
 # Position 2: Move to an adjacent room / non-line-of-sight
 python3 scripts/live_home_test.py --position L2 --idle 8 --load 15 --recovery 7
+
+# Ingest and visualize empirical live runs into publication figures
+wifi-lab analyze data/raw/live_home_runs --output-dir results/figures
 ```
 
-### 4. Run the Full Test Pyramid (480 Tests Passing)
+### 4. Run the Test Pyramid (Unit & End-to-End Suites)
 
 ```bash
-# Unit, contract, invariant, and fault injection tests
+# Unit, contract, invariant, and fault injection tests (196 tests)
 pytest tests/
 
-# End-to-End benchmark acceptance suite
+# End-to-End benchmark acceptance suite across Milestones 1–7 (286 tests)
 python3 e2e_tests/run_e2e.py
 ```
 

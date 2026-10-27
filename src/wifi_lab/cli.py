@@ -27,11 +27,12 @@ def build_parser() -> argparse.ArgumentParser:
     collect_parser.add_argument("--mock", action="store_true", help="Generate realistic synthetic/replay runs for offline dev")
     collect_parser.add_argument("--runs", type=int, default=None, help="Override planned repetition count")
 
-    # Command: analyse
-    analyse_parser = subparsers.add_parser("analyse", help="Process raw measurement logs into tables and figures")
-    analyse_parser.add_argument("--input", "-i", type=Path, default=Path("data/raw/pilot"), help="Input directory containing raw runs")
-    analyse_parser.add_argument("--output", "-o", type=Path, default=Path("data/processed/pilot"), help="Output directory for processed CSVs")
-    analyse_parser.add_argument("--figures", "-f", type=Path, default=Path("results/figures"), help="Output directory for publication figures")
+    # Command: analyse / analyze
+    analyse_parser = subparsers.add_parser("analyse", aliases=["analyze"], help="Process raw measurement logs into tables and figures")
+    analyse_parser.add_argument("input_pos", nargs="?", default=None, help="Input directory (positional shorthand)")
+    analyse_parser.add_argument("--input", "--input-dir", "-i", type=Path, default=Path("data/raw/pilot"), help="Input directory containing raw runs")
+    analyse_parser.add_argument("--output", "--output-dir", "-o", type=Path, default=Path("data/processed/pilot"), help="Output directory for processed CSVs")
+    analyse_parser.add_argument("--figures", "--figures-dir", "-f", type=Path, default=Path("results/figures"), help="Output directory for publication figures")
 
     # Command: suggest
     suggest_parser = subparsers.add_parser("suggest", help="Analyze run summaries using WiSlow-inspired diagnostic rules")
@@ -69,9 +70,10 @@ def main(argv: list[str] | None = None) -> int:
     elif args.subcommand == "collect":
         from wifi_lab.runner import execute_collection
         return execute_collection(config_path=args.config, output_dir=args.output, mock=args.mock, runs_override=args.runs)
-    elif args.subcommand == "analyse":
+    elif args.subcommand in ("analyse", "analyze"):
         from wifi_lab.analysis import run_analysis_pipeline
-        return run_analysis_pipeline(input_dir=args.input, output_dir=args.output, figures_dir=args.figures)
+        in_dir = Path(args.input_pos) if args.input_pos else args.input
+        return run_analysis_pipeline(input_dir=in_dir, output_dir=args.output, figures_dir=args.figures)
     elif args.subcommand == "suggest":
         from wifi_lab.diagnostics import run_diagnostics
         return run_diagnostics(summary_csv=args.input)

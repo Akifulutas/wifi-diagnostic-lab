@@ -496,7 +496,11 @@ class MockSimulationBackend(LabBackend):
 
         # 4. tc simulator
         elif "tc" in binary:
-            return 0, "qdisc tbf 1: root refcnt 2 rate 20Mbit burst 15Kb lat 50.0ms\n Sent 2500000 bytes 1700 pkt (dropped 0, overlimits 120 requeues 0)\n backlog 50000b 35p requeues 0", ""
+            has_queue = any(cfg.kind in ("pfifo", "bfifo", "tbf") and (cfg.limit or 0) > 100 for cfg in self._qdiscs.values())
+            if has_queue:
+                return 0, "qdisc pfifo 1: root refcnt 2 limit 1000p\n Sent 2500000 bytes 1700 pkt (dropped 0, overlimits 120 requeues 0)\n backlog 50000b 35p requeues 0", ""
+            else:
+                return 0, "qdisc fq_codel 1: root refcnt 2 limit 10240p flows 1024 quantum 1514\n Sent 2500000 bytes 1700 pkt (dropped 0, overlimits 0 requeues 0)\n backlog 0b 0p requeues 0", ""
 
         return 0, f"Executed synthetic command: {' '.join(command)}", ""
 
