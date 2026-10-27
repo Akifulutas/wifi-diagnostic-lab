@@ -76,7 +76,7 @@ This document establishes the scientific foundations, architectural constraints,
 ## 3. Hypotheses (Empirical Propositions to be Tested)
 
 ### H1. Marginal Value of an Independent Wired Observer
-- **Proposition**: Adding an independent wired observation vantage point tapped at the router ($V_{\text{observer\_remote}}$ and $V_{\text{client\_observer}}$) reduces the candidate region set size $|C|$ by $\ge 50\%$ and increases conditional localization accuracy from $< 50\%$ to $> 95\%$ compared to single-vantage end-to-end RTT ($V_{\text{client\_remote}}$).
+- **Proposition**: Adding an independent wired observation vantage point tapped at the router ($V_{\text{observer}\to\text{remote}}$ and $V_{\text{client}\to\text{observer}}$) reduces the candidate region set size $|C|$ by $\ge 50\%$ and increases conditional localization accuracy from $< 50\%$ to $> 95\%$ compared to single-vantage end-to-end RTT ($V_{\text{client}\to\text{remote}}$).
 - **Verification Protocol**: Paired Wilcoxon signed-rank test and 95% bootstrap confidence interval across $\ge 50$ runs in the 4-vantage ablation harness.
 
 ### H2. Abstention on Indistinguishable Bottleneck Pairs

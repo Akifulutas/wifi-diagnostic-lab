@@ -40,7 +40,7 @@ In real-world residential edge networks, loaded latency can originate in multipl
 3. **The Upstream WAN Link:** Oversized drop-tail FIFO buffers at DSLAMs, CMTS, or ISP access nodes.
 
 **The Research Goal:**  
-Rather than guessing a single root cause when evidence is incomplete, this project establishes a **set-valued, abstention-capable localization model**. When edge vantage points are insufficient to disambiguate the bottleneck, the engine mathematically retains uncertainty (e.g. $\mathcal{R}_{\text{cand}} = \{\text{near\_link}, \text{gateway\_node}\}$ with `abstained = True`) and explicitly specifies the minimum-cost subsequent measurement (such as deploying a wired observer tap) required to resolve ambiguity.
+Rather than guessing a single root cause when evidence is incomplete, this project establishes a **set-valued, abstention-capable localization model**. When edge vantage points are insufficient to disambiguate the bottleneck, the engine mathematically retains uncertainty (e.g. candidate region set $\mathcal{R}_{\text{cand}} = \{\text{near}, \text{gateway}\}$ with `not_excluded_regions = ["near_link", "gateway_node"]` and `abstained = True`) and explicitly specifies the minimum-cost subsequent measurement (such as deploying a wired observer tap) required to resolve ambiguity.
 
 ---
 
