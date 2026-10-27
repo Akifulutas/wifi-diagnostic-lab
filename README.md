@@ -276,7 +276,7 @@ The automated analysis pipeline generates publication-ready vector figures (SVG)
 | **[Figure 2](results/figures/live_home/fig2_rtt_ecdf.svg)** | Latency Empirical CDF | Bifurcation between idle baseline (< 5 ms) and loaded saturation (> 80 ms). |
 | **[Figure 3](results/figures/live_home/fig3_rtt_timeseries.svg)** | Dynamic 3-Phase Time-Series Dynamics | Shows idle baseline (~8s), active load ramp (~15s), and buffer drain recovery (~8s) with real relative timestamps. |
 | **[Figure 4](results/figures/live_home/fig4_loaded_delta_rtt.svg)** | Loaded $\Delta RTT$ (Bufferbloat Impact) | Plots end-to-end median loaded $\Delta RTT$ to remote destination (+32.3 ms at L1, +44.0 ms at L2); local gateway hop exhibits +54.1 ms (L1) and +114.6 ms (L2) p95 queue elevation. |
-| **[Figure 5](results/figures/fig5_mlo_vs_single_link.svg)** | Wi-Fi 7 MLO Simulation | Compares Single-Link 5 GHz vs. MLO (2.4 GHz + 5 GHz) queueing latency reduction. |
+| **[Figure 5](results/figures/fig5_mlo_vs_single_link.svg)** | Wi-Fi 7 MLO Simulation | Compares Single-Link 5 GHz vs. MLO (5 GHz + 6 GHz) queueing latency reduction. |
 
 ---
 
@@ -285,7 +285,7 @@ The automated analysis pipeline generates publication-ready vector figures (SVG)
 The repository enforces software engineering and test determinism rules:
 
 ```bash
-# 1. Unit, Contract, Invariant & Fault Injection Tests (196 tests)
+# 1. Unit, Contract, Invariant & Fault Injection Tests (197 tests)
 pytest tests/
 
 # 2. End-to-End Acceptance Suite across Milestones 1–7 (286 tests)

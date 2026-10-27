@@ -73,8 +73,10 @@ class DuckDBAnalytics:
         idle = summary.get("baseline_idle") or summary.get("idle", {})
         load = summary.get("saturation_load") or summary.get("load", {})
 
-        idle_median = idle.get("median_rtt_ms") or 25.0
-        load_p95 = load.get("p95_rtt_ms") or idle_median
+        idle_median = idle.get("median_rtt_ms")
+        load_p95 = load.get("p95_rtt_ms")
+        if idle_median is None or load_p95 is None:
+            return 0.0
 
         return max(0.0, float(load_p95 - idle_median))
 

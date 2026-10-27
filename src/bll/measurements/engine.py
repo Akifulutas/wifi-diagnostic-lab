@@ -260,9 +260,17 @@ class MeasurementEngine:
         pipeline.save_raw_log("iperf3_load.json", load_out)
         try:
             iperf_json = json.loads(load_out)
-            iperf3_samples.extend(
-                iperf3_adapter.parse_json_intervals(iperf_json, Phase.SATURATION_LOAD.value)
-            )
+            parsed_iperf = iperf3_adapter.parse_json_intervals(iperf_json, Phase.SATURATION_LOAD.value)
+            if is_mock:
+                for isamp in parsed_iperf:
+                    if isamp.rtt_ms is not None:
+                        if is_fixed_delay:
+                            isamp.rtt_ms = 60.0
+                        elif is_dual_bloat:
+                            isamp.rtt_ms += 300.0
+                        elif is_near_bloat or is_far_bloat or is_indistinguishable or is_discrepancy:
+                            isamp.rtt_ms += 150.0
+            iperf3_samples.extend(parsed_iperf)
         except Exception:
             pass
 

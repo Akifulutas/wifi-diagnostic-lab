@@ -16,20 +16,20 @@
 <text x="75" y="75.0" text-anchor="end" font-size="12" fill="#475569">1000</text>
 <line x1="90" y1="91.60000000000002" x2="760" y2="91.60000000000002" stroke="#dc2626" stroke-dasharray="6,4" stroke-width="2"/>
 <text x="750" y="83.60000000000002" text-anchor="end" font-size="11" font-weight="600" fill="#dc2626">Gigabit LAN Payload Ceiling (~940 Mbps)</text>
-<rect x="127.6875" y="137.71899999999994" width="92.12500000000001" height="292.28100000000006" fill="#2563eb" rx="4" opacity="0.85"/>
-<text x="173.75" y="127.71899999999994" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">811.9 Mbps</text>
+<rect x="127.6875" y="137.7124" width="92.12500000000001" height="292.2876" fill="#2563eb" rx="4" opacity="0.85"/>
+<text x="173.75" y="127.7124" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">811.9 Mbps</text>
 <circle cx="173.75" cy="143.74348" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
 <circle cx="173.75" cy="137.7124" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
 <circle cx="173.75" cy="131.70112000000003" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
 <text x="173.75" y="455" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L1 DL</text>
-<rect x="295.1875" y="159.99327999999997" width="92.12500000000001" height="270.00672000000003" fill="#3b82f6" rx="4" opacity="0.85"/>
-<text x="341.25" y="149.99327999999997" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">750.0 Mbps</text>
+<rect x="295.1875" y="163.54348" width="92.12500000000001" height="266.45652" fill="#3b82f6" rx="4" opacity="0.85"/>
+<text x="341.25" y="153.54348" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">740.2 Mbps</text>
 <circle cx="341.25" cy="163.54348" r="4" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
 <circle cx="341.25" cy="164.93524" r="4" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
 <circle cx="341.25" cy="151.50112000000001" r="4" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
 <text x="341.25" y="455" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L1 UL</text>
-<rect x="462.6875" y="254.20131999999998" width="92.12500000000001" height="175.79868000000002" fill="#059669" rx="4" opacity="0.85"/>
-<text x="508.75" y="244.20131999999998" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">488.3 Mbps</text>
+<rect x="462.6875" y="252.74788" width="92.12500000000001" height="177.25212" fill="#059669" rx="4" opacity="0.85"/>
+<text x="508.75" y="242.74788" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">492.4 Mbps</text>
 <circle cx="508.75" cy="252.74788" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
 <circle cx="508.75" cy="258.23356" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>
 <circle cx="508.75" cy="251.62252" r="4" fill="#ffffff" stroke="#059669" stroke-width="2"/>

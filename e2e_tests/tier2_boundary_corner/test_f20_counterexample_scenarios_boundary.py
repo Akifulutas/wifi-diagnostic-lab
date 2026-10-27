@@ -13,9 +13,9 @@ def test_scenario_unknown_scenario_rejected():
     assert res.exit_code != 0
 
 
-def test_scenario_case_sensitivity():
+def test_scenario_case_sensitivity(tmp_path):
     """F20-T2-2: Scenario matching preserves lowercase snake_case standard."""
-    res = run_bll(["run", "--scenario", "HEALTHY_BASELINE"])
+    res = run_bll(["run", "--scenario", "HEALTHY_BASELINE", "--out-dir", str(tmp_path), "--duration-idle", "0.5", "--duration-load", "0.5", "--duration-recovery", "0.5"])
     assert res.exit_code in (0, 1, 2)
 
 

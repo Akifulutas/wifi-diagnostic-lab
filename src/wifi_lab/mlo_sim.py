@@ -102,7 +102,7 @@ def run_mlo_simulation(
     mlo_p95 = mlo_sorted[int(0.95 * len(mlo_sorted))]
     mlo_max = mlo_sorted[-1]
 
-    p95_reduction = round((1.0 - (mlo_p95 / single_p95)) * 100.0, 1)
+    p95_reduction = round((1.0 - (mlo_p95 / single_p95)) * 100.0, 1) if single_p95 > 0 else 0.0
 
     # Effective throughput capacity gain derived from aggregate service completion time
     t_single = max(0.001, time_single_free)

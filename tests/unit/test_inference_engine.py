@@ -226,3 +226,83 @@ def test_inference_prohibits_ground_truth_label_leakage(tmp_path: Path):
     gt_dir.mkdir(parents=True, exist_ok=True)
     with pytest.raises(PermissionError, match="Label leakage violation"):
         run_inference(gt_dir)
+
+
+def test_benchmark_h3_requires_empirical_icmp_and_tcp_telemetry(tmp_path: Path):
+    """H3 must return not_evaluated and supported=False when comparable ICMP and TCP RTT telemetry are missing, even if ground_truth defines 15/150 ms."""
+    from bll.evaluation.benchmark import evaluate_benchmark_suite
+
+    # 1. Missing both ICMP and TCP telemetry, but ground_truth has 15/150 ms
+    c1 = tmp_path / "c1"
+    r1 = c1 / "runs" / "run_protocol_discrepancy_01"
+    r1.mkdir(parents=True, exist_ok=True)
+    (r1 / "manifest.json").write_text(json.dumps({
+        "schema_version": "1.0.0",
+        "run_id": "run_protocol_discrepancy_01",
+        "scenario_id": "protocol_discrepancy",
+        "start_time_utc": "2026-10-21T20:00:00Z",
+        "duration_seconds": 30.0,
+    }))
+    gt1 = c1 / "ground_truth"
+    gt1.mkdir(parents=True, exist_ok=True)
+    (gt1 / "run_protocol_discrepancy_01.json").write_text(json.dumps({
+        "run_id": "run_protocol_discrepancy_01",
+        "scenario_id": "protocol_discrepancy",
+        "bottleneck_regions": ["near_link"],
+        "expected_latency_increase": True,
+        "injected_queue_delay_ms": 150.0,
+        "injected_icmp_delay_ms": 15.0,
+        "injected_tcp_delay_ms": 150.0,
+    }))
+    res1 = evaluate_benchmark_suite(c1 / "runs", gt1)
+    h3_1 = res1.hypotheses_results["H3_protocol_discrepancy_icmp_vs_tcp"]
+    assert h3_1["supported"] is False
+    assert h3_1["status"] == "not_evaluated"
+    assert h3_1["discrepancy_runs_evaluated"] == 0
+    assert h3_1["icmp_delay_underestimation_pct"] is None
+    assert h3_1["expected_synthetic_underestimation_pct"] == 90.0
+    assert "observed empirically" not in h3_1["note"].lower()
+
+    # 2. ICMP telemetry present, TCP telemetry missing, ground_truth has 15/150 ms
+    samples_dir = r1 / "samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    ping_tbl = pa.Table.from_arrays(
+        [
+            pa.array([1, 2], pa.int64()),
+            pa.array(["idle", "load"], pa.string()),
+            pa.array([10.0, 25.0], pa.float64()),
+            pa.array([1, 2], pa.int32()),
+            pa.array(["client_to_remote", "client_to_remote"], pa.string()),
+        ],
+        names=["timestamp_ns", "phase", "rtt_ms", "seq", "path"],
+    )
+    pq.write_table(ping_tbl, samples_dir / "ping.parquet")
+
+    res2 = evaluate_benchmark_suite(c1 / "runs", gt1)
+    h3_2 = res2.hypotheses_results["H3_protocol_discrepancy_icmp_vs_tcp"]
+    assert h3_2["supported"] is False
+    assert h3_2["status"] == "not_evaluated"
+    assert h3_2["discrepancy_runs_evaluated"] == 0
+    assert h3_2["icmp_delay_underestimation_pct"] is None
+    assert h3_2["expected_synthetic_underestimation_pct"] == 90.0
+    assert "observed empirically" not in h3_2["note"].lower()
+
+    # 3. Both ICMP and TCP RTT telemetry present in samples/ -> empirically_observed from telemetry alone
+    iperf_tbl = pa.Table.from_arrays(
+        [
+            pa.array([1, 2], pa.int64()),
+            pa.array(["idle", "load"], pa.string()),
+            pa.array([0.0, 90.0], pa.float64()),
+            pa.array([0, 0], pa.int32()),
+            pa.array([10.0, 160.0], pa.float64()),
+        ],
+        names=["timestamp_ns", "phase", "throughput_mbps", "retransmits", "rtt_ms"],
+    )
+    pq.write_table(iperf_tbl, samples_dir / "iperf3.parquet")
+
+    res3 = evaluate_benchmark_suite(c1 / "runs", gt1)
+    h3_3 = res3.hypotheses_results["H3_protocol_discrepancy_icmp_vs_tcp"]
+    assert h3_3["supported"] is True
+    assert h3_3["status"] == "empirically_observed"
+    assert h3_3["discrepancy_runs_evaluated"] == 1
+    assert h3_3["icmp_delay_underestimation_pct"] == 90.0

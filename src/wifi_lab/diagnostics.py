@@ -106,7 +106,7 @@ def analyze_performance_patterns(rows: list[dict[str, Any]]) -> list[DiagnosticF
     # Finding 2: Spatial Attenuation and Rate Adaptation at L2
     if l1_dls and l2_dls:
         l2_med = statistics.median(l2_dls)
-        pct_drop = round((1.0 - (l2_med / l1_med)) * 100.0, 1)
+        pct_drop = round((1.0 - (l2_med / l1_med)) * 100.0, 1) if l1_med > 0 else 0.0
         l2_ret_avg = statistics.mean(l2_retrans) if l2_retrans else 0
         l1_ret_avg = statistics.mean(l1_retrans) if l1_retrans else 0
 

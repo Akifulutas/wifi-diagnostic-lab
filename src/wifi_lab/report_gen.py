@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import json
+import statistics
 from pathlib import Path
 from typing import Any
 
@@ -34,19 +35,21 @@ def generate_html_report(summary_csv: Path, figures_dir: Path, output_html: Path
     max_tp = max(tps) if tps else 0.0
 
     l1_dls = [float(r["receiver_throughput_mbps"]) for r in valid_rows if r["position_id"] == "L1" and r["direction"] == "download"]
-    l1_dl_med = (sum(l1_dls) / len(l1_dls)) if l1_dls else 0.0
+    l1_dl_med = statistics.median(l1_dls) if l1_dls else 0.0
 
     l2_dls = [float(r["receiver_throughput_mbps"]) for r in valid_rows if r["position_id"] == "L2" and r["direction"] == "download"]
-    l2_dl_med = (sum(l2_dls) / len(l2_dls)) if l2_dls else 0.0
+    l2_dl_med = statistics.median(l2_dls) if l2_dls else 0.0
+
+    nlos_drop_str = f"{((1.0 - (l2_dl_med / l1_dl_med)) * 100.0):.1f}% drop across drywall" if (l1_dl_med > 0 and l2_dl_med > 0) else "No L1/L2 comparison available"
 
     idle_rtts = [float(r["idle_rtt_median_ms"]) for r in valid_rows if r["idle_rtt_median_ms"]]
-    idle_med = (sum(idle_rtts) / len(idle_rtts)) if idle_rtts else 0.0
+    idle_med = statistics.median(idle_rtts) if idle_rtts else 0.0
 
     loaded_rtts = [float(r["loaded_rtt_median_ms"]) for r in valid_rows if r["loaded_rtt_median_ms"]]
-    loaded_med = (sum(loaded_rtts) / len(loaded_rtts)) if loaded_rtts else 0.0
+    loaded_med = statistics.median(loaded_rtts) if loaded_rtts else 0.0
 
     deltas = [float(r["delta_rtt_median_ms"]) for r in valid_rows if r["delta_rtt_median_ms"]]
-    delta_med = (sum(deltas) / len(deltas)) if deltas else 0.0
+    delta_med = statistics.median(deltas) if deltas else 0.0
 
     # Diagnostic findings
     findings = analyze_performance_patterns(rows)
@@ -357,7 +360,7 @@ def generate_html_report(summary_csv: Path, figures_dir: Path, output_html: Path
         <div class="kpi-card">
             <div class="kpi-title">NLOS Attenuation (L2)</div>
             <div class="kpi-value" style="color:#d97706;">{l2_dl_med:.1f} <span style="font-size:1rem;font-weight:600;">Mbps</span></div>
-            <div class="kpi-subtext">39.4% drop across drywall</div>
+            <div class="kpi-subtext">{nlos_drop_str}</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-title">Idle Baseline RTT</div>
@@ -367,7 +370,7 @@ def generate_html_report(summary_csv: Path, figures_dir: Path, output_html: Path
         <div class="kpi-card">
             <div class="kpi-title">Loaded RTT (Bufferbloat)</div>
             <div class="kpi-value" style="color:var(--danger);">{loaded_med:.1f} <span style="font-size:1rem;font-weight:600;">ms</span></div>
-            <div class="kpi-subtext">Avg Inflation: +{delta_med:.1f} ms</div>
+            <div class="kpi-subtext">Median Inflation: +{delta_med:.1f} ms</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-title">Run Validity Rate</div>

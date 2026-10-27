@@ -285,15 +285,35 @@ class MockSimulationBackend(LabBackend):
     _CLASS_IS_SETUP: bool = False
     _STATE_FILE: Path = Path("/tmp/bll_mock_simulation_state.json")
 
+    @classmethod
+    def _get_state_file(cls) -> Path:
+        env_path = os.environ.get("BLL_STATE_FILE")
+        if env_path:
+            return Path(env_path)
+        return cls._STATE_FILE
+
     def __init__(self):
-        self._is_setup: bool = self._CLASS_IS_SETUP or self._STATE_FILE.exists()
+        state_file = self._get_state_file()
+        self._is_setup: bool = self._CLASS_IS_SETUP or state_file.exists()
         if self._is_setup:
             self._namespaces: set[str] = {
                 "bll-client", "bll-qnear", "bll-router", "bll-observer", "bll-qfar", "bll-remote"
             }
+            self._interfaces: dict[str, dict[str, Any]] = {
+                "bll-cli-qn": {"ip": "10.10.1.2/30", "peer": "bll-qn-cli", "node": "bll-client"},
+                "bll-qn-cli": {"ip": "10.10.1.1/30", "peer": "bll-cli-qn", "node": "bll-qnear"},
+                "bll-qn-rtr": {"ip": "10.10.2.1/30", "peer": "bll-rtr-qn", "node": "bll-qnear"},
+                "bll-rtr-qn": {"ip": "10.10.2.2/30", "peer": "bll-qn-rtr", "node": "bll-router"},
+                "bll-rtr-obs": {"ip": "10.10.3.1/30", "peer": "bll-obs-rtr", "node": "bll-router"},
+                "bll-obs-rtr": {"ip": "10.10.3.2/30", "peer": "bll-rtr-obs", "node": "bll-observer"},
+                "bll-rtr-qf": {"ip": "10.10.4.1/30", "peer": "bll-qf-rtr", "node": "bll-router"},
+                "bll-qf-rtr": {"ip": "10.10.4.2/30", "peer": "bll-rtr-qf", "node": "bll-qfar"},
+                "bll-qf-rem": {"ip": "10.10.5.1/30", "peer": "bll-rem-qf", "node": "bll-qfar"},
+                "bll-rem-qf": {"ip": "10.10.5.2/30", "peer": "bll-qf-rem", "node": "bll-remote"},
+            }
         else:
             self._namespaces: set[str] = set()
-        self._interfaces: dict[str, dict[str, Any]] = {}
+            self._interfaces: dict[str, dict[str, Any]] = {}
         self._qdiscs: dict[str, QdiscConfig] = {}
 
     @property
@@ -322,7 +342,10 @@ class MockSimulationBackend(LabBackend):
         self._is_setup = True
         MockSimulationBackend._CLASS_IS_SETUP = True
         try:
-            self._STATE_FILE.write_text("{\"status\": \"ready\"}")
+            state_file = self._get_state_file()
+            tmp_file = state_file.with_suffix(f".{os.getpid()}.tmp")
+            tmp_file.write_text('{"status": "ready"}', encoding="utf-8")
+            tmp_file.replace(state_file)
         except Exception:
             pass
         return {
@@ -334,7 +357,8 @@ class MockSimulationBackend(LabBackend):
         }
 
     def verify_topology(self) -> dict[str, Any]:
-        self._is_setup = self._CLASS_IS_SETUP or self._STATE_FILE.exists()
+        state_file = self._get_state_file()
+        self._is_setup = self._CLASS_IS_SETUP or state_file.exists()
         if not self._is_setup:
             return {
                 "verified": False,
@@ -372,7 +396,7 @@ class MockSimulationBackend(LabBackend):
         return {"status": "ok"}
 
     def status(self) -> dict[str, Any]:
-        is_running = self._CLASS_IS_SETUP or self._STATE_FILE.exists()
+        is_running = self._CLASS_IS_SETUP or self._get_state_file().exists()
         return {
             "running": is_running,
             "namespaces": ["bll-client", "bll-qnear", "bll-router", "bll-observer", "bll-qfar", "bll-remote"] if is_running else [],
@@ -496,7 +520,11 @@ class MockSimulationBackend(LabBackend):
 
         # 4. tc simulator
         elif "tc" in binary:
-            has_queue = any(cfg.kind in ("pfifo", "bfifo", "tbf") and (cfg.limit or 0) > 100 for cfg in self._qdiscs.values())
+            has_queue = any(
+                (cfg.queue_type in ("pfifo", "bfifo") or cfg.shaper_type in ("htb", "tbf"))
+                and (cfg.limit is None or cfg.limit > 100)
+                for cfg in self._qdiscs.values()
+            )
             if has_queue:
                 return 0, "qdisc pfifo 1: root refcnt 2 limit 1000p\n Sent 2500000 bytes 1700 pkt (dropped 0, overlimits 120 requeues 0)\n backlog 50000b 35p requeues 0", ""
             else:
@@ -512,7 +540,7 @@ class MockSimulationBackend(LabBackend):
         self._is_setup = False
         MockSimulationBackend._CLASS_IS_SETUP = False
         try:
-            self._STATE_FILE.unlink(missing_ok=True)
+            self._get_state_file().unlink(missing_ok=True)
         except Exception:
             pass
         return {

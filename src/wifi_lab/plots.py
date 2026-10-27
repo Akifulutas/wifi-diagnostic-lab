@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import math
+import statistics
 from pathlib import Path
 from typing import Any
 
@@ -120,7 +121,7 @@ def _plot_fig1_throughput(rows: list[dict[str, Any]], out_path: Path) -> None:
 
     for i, (k, vals) in enumerate(groups.items()):
         cx = pad_l + i * col_w + col_w / 2
-        med = (sum(vals) / len(vals)) if vals else 0.0
+        med = statistics.median(vals) if vals else 0.0
 
         bar_h = plot_h * (med / max_y)
         bar_y = pad_t + plot_h - bar_h
@@ -380,7 +381,7 @@ def _plot_fig4_delta_rtt(rows: list[dict[str, Any]], out_path: Path) -> None:
 
     for i, (k, vals) in enumerate(groups.items()):
         cx = pad_l + i * col_w + col_w / 2
-        med = (sum(vals) / len(vals)) if vals else 0.0
+        med = statistics.median(vals) if vals else 0.0
 
         bar_h = plot_h * (med / max_y)
         bar_y = pad_t + plot_h - bar_h

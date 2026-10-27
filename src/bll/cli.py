@@ -712,8 +712,6 @@ def run_cmd(
         click.echo(f"Error: Recovery phase duration must be non-negative, got {duration_recovery}.", err=True)
         sys.exit(1)
 
-    if not output_json:
-        pass
     try:
         from bll.runner.phase_engine import execute_run
         out_dir_path = Path(out_dir)
@@ -1007,7 +1005,6 @@ def evaluate_cmd(
             click.echo(summary_json)
         else:
             click.echo(f"Benchmark evaluation complete. Results written to {out_json}")
-        sys.exit(0 if summary.gate_passed else 1)
         sys.exit(0 if summary.gate_passed else 1)
     except ImportError:
         click.echo("bll.evaluation module planned for Milestone 6.", err=True)

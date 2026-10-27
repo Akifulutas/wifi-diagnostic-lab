@@ -1072,6 +1072,7 @@ def run_bll(args: List[str], cwd: Optional[pathlib.Path] = None, env: Optional[D
     proj_root = pathlib.Path(__file__).parent.parent
     src_dir = proj_root / "src"
     cli_py = src_dir / "bll" / "cli.py"
+    os.environ.setdefault("BLL_STATE_FILE", f"/tmp/bll_mock_simulation_state_{os.getpid()}.json")
 
     # Track lab lifecycle state
     if args and args[0] == "lab":
@@ -1083,9 +1084,12 @@ def run_bll(args: List[str], cwd: Optional[pathlib.Path] = None, env: Optional[D
 
     if os.environ.get("BLL_BIN"):
         cli_bin = os.environ["BLL_BIN"]
+        run_env = dict(os.environ)
+        if env:
+            run_env.update(env)
         start = time.monotonic()
         try:
-            res = subprocess.run([cli_bin] + args, cwd=cwd, env=env, capture_output=True, text=True, timeout=timeout)
+            res = subprocess.run([cli_bin] + args, cwd=cwd, env=run_env, capture_output=True, text=True, timeout=timeout)
             json_data = None
             if res.stdout.strip():
                 try:
@@ -1271,14 +1275,23 @@ def create_synthetic_run(
 
         # Iperf3 Parquet table
         throughput_vals = [0.0 if p != "load" else 95.5 for p in phases]
+        tcp_rtt_vals = [
+            10.7 if p != "load" else (
+                310.7 if is_dual else (
+                    160.7 if (is_near or is_far or is_indistinguishable or is_discrepancy) else 10.7
+                )
+            )
+            for p in phases
+        ]
         iperf3_table = pa.Table.from_arrays(
             [
                 pa.array(timestamps, pa.int64()),
                 pa.array(phases, pa.string()),
                 pa.array(throughput_vals, pa.float64()),
                 pa.array([0] * n_samples, pa.int32()),
+                pa.array(tcp_rtt_vals, pa.float64()),
             ],
-            names=["timestamp_ns", "phase", "throughput_mbps", "retransmits"],
+            names=["timestamp_ns", "phase", "throughput_mbps", "retransmits", "rtt_ms"],
         )
         pq.write_table(iperf3_table, run_path / "samples" / "iperf3.parquet")
 

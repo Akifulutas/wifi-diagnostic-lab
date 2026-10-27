@@ -36,7 +36,8 @@ def redact_text(text: str, ip_map: Dict[str, str], mac_map: Dict[str, str]) -> T
         nonlocal ip_count
         raw_ip = match.group(1)
         if raw_ip not in ip_map:
-            alias = f"10.0.0.{len(ip_map)+1}"
+            import ipaddress
+            alias = str(ipaddress.IPv4Address(int(ipaddress.IPv4Address("10.0.0.1")) + len(ip_map)))
             ip_map[raw_ip] = alias
         ip_count += 1
         return ip_map[raw_ip]

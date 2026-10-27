@@ -8,15 +8,12 @@ from __future__ import annotations
 import importlib
 import json
 import logging
-import math
 import statistics
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from bll.storage.schemas import (
     BenchmarkSummary,
-    QueueEvidenceLevel,
-    RegionName,
     ScenarioEvaluationResult,
 )
 
@@ -101,6 +98,7 @@ def evaluate_benchmark_suite(
     indistinguishable_runs = 0
     indistinguishable_abstained = 0
     protocol_diffs: List[float] = []
+    synthetic_expected_diffs: List[float] = []
 
     for r_dir in run_dirs:
         run_id = r_dir.name
@@ -139,11 +137,13 @@ def evaluate_benchmark_suite(
             if verdict.abstained:
                 indistinguishable_abstained += 1
 
-        # Check protocol discrepancy
+        # Check protocol discrepancy strictly from paired empirical ICMP and TCP telemetry
         if "discrepancy" in sc_id:
-            measured_diff = None
+            measured_diff: Optional[float] = None
             ping_parquet = r_dir / "samples" / "ping.parquet"
-            if ping_parquet.exists():
+            iperf3_parquet = r_dir / "samples" / "iperf3.parquet"
+            tcp_probe_parquet = r_dir / "samples" / "tcp_probe.parquet"
+            if ping_parquet.exists() and (iperf3_parquet.exists() or tcp_probe_parquet.exists()):
                 try:
                     import duckdb
                     con = duckdb.connect(":memory:")
@@ -153,27 +153,53 @@ def evaluate_benchmark_suite(
                         WHERE rtt_ms IS NOT NULL
                         GROUP BY phase
                     """).fetchall()
-                    ph_map = {str(r[0]).lower(): float(r[1]) for r in rows}
-                    if "load" in ph_map and "idle" in ph_map:
-                        icmp_delta = max(0.0, ph_map["load"] - ph_map["idle"])
-                        tcp_delay = float(gt_data.get("injected_tcp_delay_ms") or gt_data.get("injected_queue_delay_ms", 0.0))
-                        if tcp_delay > icmp_delta and tcp_delay > 0.0:
-                            measured_diff = round(((tcp_delay - icmp_delta) / tcp_delay) * 100.0, 1)
+                    ph_map = {str(r[0]).lower(): float(r[1]) for r in rows if r[1] is not None}
+                    idle_icmp = ph_map.get("idle") if "idle" in ph_map else ph_map.get("baseline_idle")
+                    load_icmp = ph_map.get("load") if "load" in ph_map else ph_map.get("saturation_load")
+
+                    tcp_load_rtt: Optional[float] = None
+                    tcp_idle_rtt: Optional[float] = None
+                    for tcp_pq in (iperf3_parquet, tcp_probe_parquet):
+                        if not tcp_pq.exists():
+                            continue
+                        cols = [c[0] for c in con.execute(f"DESCRIBE SELECT * FROM read_parquet('{tcp_pq.as_posix()}')").fetchall()]
+                        if "rtt_ms" not in cols or "phase" not in cols:
+                            continue
+                        tcp_rows = con.execute(f"""
+                            SELECT phase, median(rtt_ms)
+                            FROM read_parquet('{tcp_pq.as_posix()}')
+                            WHERE rtt_ms IS NOT NULL
+                            GROUP BY phase
+                        """).fetchall()
+                        tcp_map = {str(r[0]).lower(): float(r[1]) for r in tcp_rows if r[1] is not None}
+                        t_load = tcp_map.get("load") if "load" in tcp_map else tcp_map.get("saturation_load")
+                        t_idle = tcp_map.get("idle") if "idle" in tcp_map else tcp_map.get("baseline_idle")
+                        if t_load is not None:
+                            tcp_load_rtt = t_load
+                            tcp_idle_rtt = t_idle
+                            break
+
+                    if idle_icmp is not None and load_icmp is not None and tcp_load_rtt is not None:
+                        icmp_delta = max(0.0, load_icmp - idle_icmp)
+                        base_tcp = tcp_idle_rtt if tcp_idle_rtt is not None else idle_icmp
+                        tcp_delta = max(0.0, tcp_load_rtt - base_tcp)
+                        if tcp_delta > 0.0 and tcp_delta >= icmp_delta:
+                            measured_diff = round(((tcp_delta - icmp_delta) / tcp_delta) * 100.0, 1)
                 except Exception:
                     pass
 
             if measured_diff is not None:
                 protocol_diffs.append(measured_diff)
-            else:
-                inj_params = gt_data.get("injected_parameters", {})
-                icmp_delay = gt_data.get("injected_icmp_delay_ms") if "injected_icmp_delay_ms" in gt_data else inj_params.get("injected_icmp_delay_ms")
-                tcp_delay = gt_data.get("injected_tcp_delay_ms") if "injected_tcp_delay_ms" in gt_data else (inj_params.get("injected_tcp_delay_ms") or gt_data.get("injected_queue_delay_ms") or inj_params.get("injected_queue_delay_ms"))
-                if icmp_delay is not None and tcp_delay is not None:
-                    icmp_delay = float(icmp_delay)
-                    tcp_delay = float(tcp_delay or 0.0)
-                    if tcp_delay > 0.0 and icmp_delay > 0.0 and tcp_delay > icmp_delay:
-                        pct = round(((tcp_delay - icmp_delay) / tcp_delay) * 100.0, 1)
-                        protocol_diffs.append(pct)
+
+            # Record scenario injection expectations separately (never used as empirical measurement)
+            inj_params = gt_data.get("injected_parameters", {})
+            icmp_inj = gt_data.get("injected_icmp_delay_ms") if "injected_icmp_delay_ms" in gt_data else inj_params.get("injected_icmp_delay_ms")
+            tcp_inj = gt_data.get("injected_tcp_delay_ms") if "injected_tcp_delay_ms" in gt_data else (inj_params.get("injected_tcp_delay_ms") or gt_data.get("injected_queue_delay_ms") or inj_params.get("injected_queue_delay_ms"))
+            if icmp_inj is not None and tcp_inj is not None:
+                icmp_inj_f = float(icmp_inj)
+                tcp_inj_f = float(tcp_inj or 0.0)
+                if tcp_inj_f > 0.0 and icmp_inj_f >= 0.0 and tcp_inj_f > icmp_inj_f:
+                    synthetic_expected_diffs.append(round(((tcp_inj_f - icmp_inj_f) / tcp_inj_f) * 100.0, 1))
 
         # Candidate set reduction against 5-region topology
         cand_size = len(verdict.not_excluded_regions) if verdict.abstained else max(1, len(verdict.supported_regions))
@@ -218,30 +244,55 @@ def evaluate_benchmark_suite(
         pos_reductions = [d for d in paired_candidate_diffs if d > 0]
         h1_supported = bool(len(pos_reductions) > 0 and rsc >= 0.95 and cle <= 0.10 and med_csr > 0.0)
         h1_status = "empirically_supported" if h1_supported else "inconclusive"
+        h1_note = (
+            "Candidate set reduction observed empirically across evaluated runs. Inferential p-values and confidence intervals deferred to high-sample controlled trials (N >= 30)."
+            if h1_supported
+            else "Observer candidate reduction evaluated, but coverage or localization error thresholds were not met."
+        )
     else:
         pos_reductions = []
         h1_supported = False
         h1_status = "not_evaluated"
+        h1_note = "No paired observer-vs-remote candidate reductions available to evaluate."
 
     # 2. Descriptive Empirical Evaluation H2: Abstention on Indistinguishable Pairs
     if indistinguishable_runs > 0:
         abst_rate = round(indistinguishable_abstained / indistinguishable_runs, 4)
         h2_supported = bool(abst_rate >= 0.80)
         h2_status = "empirically_supported" if h2_supported else "inconclusive"
+        h2_note = (
+            "Abstention on ambiguous topologies observed empirically. Formal statistical hypothesis testing (p < 0.05) deferred to multi-repetition trials (N >= 5)."
+            if h2_supported
+            else "Indistinguishable topology runs evaluated, but abstention rate was below threshold."
+        )
     else:
         abst_rate = 0.0
         h2_supported = False
         h2_status = "not_evaluated"
+        h2_note = "No indistinguishable topology runs available to evaluate."
 
     # 3. Descriptive Empirical Evaluation H3: Protocol Discrepancy (ICMP vs TCP under AQM)
+    expected_synthetic_pct: Optional[float] = (
+        round(sum(synthetic_expected_diffs) / len(synthetic_expected_diffs), 1)
+        if synthetic_expected_diffs
+        else None
+    )
     if protocol_diffs:
-        mean_diff = round(sum(protocol_diffs) / len(protocol_diffs), 1)
+        mean_diff: Optional[float] = round(sum(protocol_diffs) / len(protocol_diffs), 1)
         h3_supported = bool(mean_diff > 50.0)
         h3_status = "empirically_observed" if h3_supported else "inconclusive"
+        h3_note = (
+            "Flow-queue isolation between sparse ICMP probes and saturation TCP stream observed empirically from paired ICMP and TCP RTT telemetry. Inferential statistical significance testing deferred to live multi-protocol testbed."
+            if h3_supported
+            else "Comparable ICMP and TCP RTT telemetry evaluated, but measured protocol discrepancy did not exceed threshold."
+        )
     else:
-        mean_diff = 0.0
+        mean_diff = None
         h3_supported = False
         h3_status = "not_evaluated"
+        h3_note = (
+            "Comparable empirical ICMP and TCP RTT telemetry not available in run samples; scenario injection parameters (if present) are reported separately as expected_synthetic_underestimation_pct and do not constitute empirical observation."
+        )
 
     hypotheses_results = {
         "H1_observer_marginal_value": {
@@ -255,7 +306,7 @@ def evaluate_benchmark_suite(
             "region_set_coverage": round(rsc, 4),
             "conditional_localization_error": round(cle, 4),
             "statistical_validation": "deferred_to_large_sample_trials",
-            "note": "Candidate set reduction observed empirically across evaluated runs. Inferential p-values and confidence intervals deferred to high-sample controlled trials (N >= 30).",
+            "note": h1_note,
         },
         "H2_abstention_on_indistinguishable_pairs": {
             "supported": h2_supported,
@@ -266,15 +317,16 @@ def evaluate_benchmark_suite(
             "decision_coverage": round(dc, 4),
             "false_positive_rate": round(fpr, 4),
             "statistical_validation": "deferred_to_large_sample_trials",
-            "note": "Abstention on ambiguous topologies observed empirically. Formal statistical hypothesis testing (p < 0.05) deferred to multi-repetition trials (N >= 5).",
+            "note": h2_note,
         },
         "H3_protocol_discrepancy_icmp_vs_tcp": {
             "supported": h3_supported,
             "status": h3_status,
             "discrepancy_runs_evaluated": len(protocol_diffs),
             "icmp_delay_underestimation_pct": mean_diff,
+            "expected_synthetic_underestimation_pct": expected_synthetic_pct,
             "statistical_validation": "deferred_to_large_sample_trials",
-            "note": "Flow-queue isolation between sparse ICMP probes and saturation TCP stream observed empirically. Inferential statistical significance testing deferred to live multi-protocol testbed.",
+            "note": h3_note,
         },
     }
 

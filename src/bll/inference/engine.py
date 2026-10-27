@@ -233,7 +233,7 @@ def run_inference(
     # Segregate paths by topological segment
     near_paths = [p for p in deltas if any(k in p.lower() for k in ("near", "gateway", "wifi", "client_to_gateway", "client_to_observer"))]
     far_paths = [p for p in deltas if any(k in p.lower() for k in ("far", "wan", "remote_hop", "observer_to_remote"))]
-    e2e_paths = [p for p in deltas if any(k in p.lower() for k in ("client_to_remote", "remote", "e2e", "default"))]
+    e2e_paths = [p for p in deltas if any(k in p.lower() for k in ("client_to_remote", "e2e", "default")) or p.lower() == "remote"]
 
     delta_near = max([deltas[p] for p in near_paths], default=0.0)
     delta_far = max([deltas[p] for p in far_paths], default=0.0)

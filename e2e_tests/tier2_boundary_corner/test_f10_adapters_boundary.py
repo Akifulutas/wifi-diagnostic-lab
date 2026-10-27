@@ -32,7 +32,7 @@ def test_adapter_unknown_direction_rejected():
     assert res.exit_code != 0
 
 
-def test_adapter_subsecond_duration_handled():
+def test_adapter_subsecond_duration_handled(tmp_path):
     """F10-T2-5: Very short (0.5s) phase durations accepted for fast automated testing."""
-    res = run_bll(["run", "--scenario", "healthy_baseline", "--duration-idle", "0.5", "--duration-load", "0.5", "--duration-recovery", "0.5"])
+    res = run_bll(["run", "--scenario", "healthy_baseline", "--out-dir", str(tmp_path), "--duration-idle", "0.5", "--duration-load", "0.5", "--duration-recovery", "0.5"])
     assert res.exit_code in (0, 1)

@@ -37,7 +37,7 @@ def test_phase_run_in_nonexistent_dir(tmp_path: pathlib.Path):
     assert deep_path.exists()
 
 
-def test_phase_zero_recovery_duration_handled():
+def test_phase_zero_recovery_duration_handled(tmp_path: pathlib.Path):
     """F11-T2-5: Zero recovery phase duration rejected or warned."""
-    res = run_bll(["run", "--duration-recovery", "0"])
+    res = run_bll(["run", "--out-dir", str(tmp_path), "--duration-idle", "0.5", "--duration-load", "0.5", "--duration-recovery", "0"])
     assert res.exit_code in (0, 1, 2)
