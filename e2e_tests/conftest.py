@@ -20,6 +20,13 @@ def lab_env(tmp_path: pathlib.Path):
     gt_dir = tmp_path / "ground_truth"
     runs_dir.mkdir(parents=True, exist_ok=True)
     gt_dir.mkdir(parents=True, exist_ok=True)
+
+    # Pre-populate reference testbed runs so that evaluation fixtures have realistic multi-scenario data
+    create_synthetic_run(runs_dir / "run_healthy_001", gt_dir / "run_healthy_001.json", scenario="healthy_baseline")
+    create_synthetic_run(runs_dir / "run_near_fifo_001", gt_dir / "run_near_fifo_001.json", scenario="residential_dsl_near_fifo")
+    create_synthetic_run(runs_dir / "run_far_fifo_001", gt_dir / "run_far_fifo_001.json", scenario="cable_asymmetric_far_fifo")
+    create_synthetic_run(runs_dir / "run_indistinguishable_001", gt_dir / "run_indistinguishable_001.json", scenario="indistinguishable_access_vs_gateway")
+    create_synthetic_run(runs_dir / "run_protocol_discrepancy_001", gt_dir / "run_protocol_discrepancy_001.json", scenario="protocol_discrepancy_icmp_vs_tcp")
     return tmp_path
 
 

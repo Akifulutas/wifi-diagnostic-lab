@@ -47,8 +47,8 @@ def test_ground_truth_file_content_matches_schema(tmp_path: pathlib.Path):
     assert gt["scenario_id"] == "residential_dsl_near_fifo"
 
 
-def test_evaluator_is_sole_ground_truth_consumer(tmp_path: pathlib.Path):
+def test_evaluator_is_sole_ground_truth_consumer(lab_env: pathlib.Path):
     """F14-T1-5: Evaluator accepts ground-truth directory for double-blind benchmark scoring."""
-    res = run_bll(["evaluate", "--runs-dir", str(tmp_path / "runs"), "--ground-truth-dir", str(tmp_path / "ground_truth"), "--json"])
+    res = run_bll(["evaluate", "--runs-dir", str(lab_env / "runs"), "--ground-truth-dir", str(lab_env / "ground_truth"), "--json"])
     assert res.exit_code == 0
     assert res.json_data.get("gate_passed") is True

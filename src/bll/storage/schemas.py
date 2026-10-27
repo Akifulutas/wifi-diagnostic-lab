@@ -173,7 +173,7 @@ class EnvironmentInfo(BaseModel):
 
 class RunManifest(BaseModel):
     """Root model for runs/<run_id>/manifest.json."""
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
     schema_version: Literal["1.0.0"] = "1.0.0"
     run_id: str = Field(pattern=r"^(run_[a-f0-9\-]+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$")
     timestamp_utc: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

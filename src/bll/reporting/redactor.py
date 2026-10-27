@@ -60,10 +60,15 @@ def export_redacted_dataset(input_dir: Path | str, output_dir: Path | str) -> Pa
                     # 1. Redact MAC addresses to IEEE local 02:00:00:xx:xx:xx
                     text = MAC_REGEX.sub("02:00:00:11:22:33", text)
 
-                    # 2. Scrub sensitive credentials/SSIDs
+                    # 2. Scrub sensitive credentials/SSIDs and hostnames
                     text = re.sub(
                         r'(?i)("ssid"|"password"|"secret"):\s*"[^"]+"',
                         r'\1: "SHA-256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"',
+                        text,
+                    )
+                    text = re.sub(
+                        r'(?i)("hostname"):\s*"[^"]+"',
+                        r'\1: "redacted-host.local"',
                         text,
                     )
 
@@ -85,11 +90,25 @@ def export_redacted_dataset(input_dir: Path | str, output_dir: Path | str) -> Pa
                         new_cols = []
                         for col_name in table.column_names:
                             col = table[col_name]
-                            if pa.types.is_string(col.type) and any(k in col_name.lower() for k in ("ip", "target", "src", "dst")):
+                            if pa.types.is_string(col.type):
                                 str_list = col.to_pylist()
-                                new_list = [IPV4_REGEX.sub(replace_ip, str(v)) if v is not None else None for v in str_list]
-                                new_cols.append(pa.array(new_list, pa.string()))
-                                modified = True
+                                new_list = []
+                                col_changed = False
+                                for v in str_list:
+                                    if v is not None:
+                                        s = str(v)
+                                        s_mod = MAC_REGEX.sub("02:00:00:11:22:33", s)
+                                        s_mod = IPV4_REGEX.sub(replace_ip, s_mod)
+                                        if s_mod != s:
+                                            col_changed = True
+                                        new_list.append(s_mod)
+                                    else:
+                                        new_list.append(None)
+                                if col_changed:
+                                    new_cols.append(pa.array(new_list, pa.string()))
+                                    modified = True
+                                else:
+                                    new_cols.append(col)
                             else:
                                 new_cols.append(col)
                         if modified:

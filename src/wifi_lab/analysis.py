@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from datetime import datetime
 import json
 import statistics
 from pathlib import Path
@@ -61,14 +62,33 @@ def run_analysis_pipeline(input_dir: Path, output_dir: Path, figures_dir: Path) 
             if probes_csv_path.is_file():
                 try:
                     with open(probes_csv_path, "r", encoding="utf-8") as f:
-                        reader = csv.DictReader(f)
-                        for row in reader:
+                        rows = list(csv.DictReader(f))
+                        t_start: datetime | None = None
+                        for row in rows:
+                            ts_str = row.get("timestamp_utc", "")
+                            if ts_str:
+                                try:
+                                    t_val = datetime.fromisoformat(ts_str)
+                                    if t_start is None or t_val < t_start:
+                                        t_start = t_val
+                                except Exception:
+                                    pass
+
+                        for row in rows:
                             if "remote" in row.get("target_name", "").lower() or "1.1.1.1" in row.get("target_ip", ""):
                                 rtt_val = float(row["rtt_ms"]) if row.get("rtt_ms") else None
+                                rel_s = 0.0
+                                if t_start and row.get("timestamp_utc"):
+                                    try:
+                                        t_probe = datetime.fromisoformat(row["timestamp_utc"])
+                                        rel_s = round((t_probe - t_start).total_seconds(), 3)
+                                    except Exception:
+                                        rel_s = 0.0
+
                                 all_rtt_samples.append({
                                     "run_id": run_id,
                                     "seq": int(row.get("seq", 0)),
-                                    "timestamp_rel_s": 0.0,
+                                    "timestamp_rel_s": rel_s,
                                     "phase": row.get("phase", "idle"),
                                     "rtt_ms": rtt_val if rtt_val is not None else "",
                                     "is_boundary_guarded": False,
@@ -84,13 +104,16 @@ def run_analysis_pipeline(input_dir: Path, output_dir: Path, figures_dir: Path) 
             delta_med = e2e.get("delta_median_ms")
             total_probes = sum(e2e.get(p, {}).get("count", 0) for p in ("idle", "load", "recovery"))
 
+            outcome_val = "ok" if tp > 0.0 else "failed_load"
+            fail_msg = "" if tp > 0.0 else "Throughput reached 0.0 Mbps (load generation incomplete)"
+
             row = RunSummaryRow(
                 run_id=run_id,
                 day_label="live_home",
                 position_id=pos_id,
                 direction="download",
                 repetition=1,
-                outcome="OK",
+                outcome=outcome_val,
                 receiver_throughput_mbps=tp,
                 sender_throughput_mbps=tp,
                 tcp_retransmits=0,
@@ -103,7 +126,7 @@ def run_analysis_pipeline(input_dir: Path, output_dir: Path, figures_dir: Path) 
                 sent_probes=total_probes,
                 received_probes=total_probes,
                 loss_rate_pct=0.0,
-                failure_reason="",
+                failure_reason=fail_msg,
             )
             summary_rows.append(row)
             continue

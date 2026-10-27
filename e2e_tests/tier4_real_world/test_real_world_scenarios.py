@@ -139,6 +139,7 @@ def test_scenario_10_protocol_discrepancy_icmp_vs_tcp(tmp_path: pathlib.Path):
     """S10: Hypothesis H3 — Protocol Discrepancy (ICMP vs TCP under FQ-CoDel).
     Sparse ICMP packets flow through separate hash buckets, underestimating TCP loaded delay.
     Verifies: protocol discrepancy is characterized and reported."""
+    run_bll(["run", "--scenario", "protocol_discrepancy_icmp_vs_tcp", "--out-dir", str(tmp_path), "--duration-idle", "1", "--duration-load", "1", "--duration-recovery", "1"])
     res_eval = run_bll(["evaluate", "--runs-dir", str(tmp_path / "runs"), "--ground-truth-dir", str(tmp_path / "ground_truth"), "--json"])
     assert res_eval.exit_code == 0
     h3 = res_eval.json_data["hypotheses_results"]["H3_protocol_discrepancy_icmp_vs_tcp"]

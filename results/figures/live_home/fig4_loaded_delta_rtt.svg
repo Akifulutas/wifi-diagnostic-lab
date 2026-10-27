@@ -4,21 +4,23 @@
 <text x="400.0" y="52" text-anchor="middle" font-size="13" fill="#64748b">Additional queueing delay introduced by saturation TCP load (Δ = RTT_loaded - RTT_idle)</text>
 <line x1="90" y1="410.0" x2="760" y2="410.0" stroke="#e2e8f0" stroke-width="1"/>
 <text x="75" y="415.0" text-anchor="end" font-size="12" fill="#475569">0 ms</text>
-<line x1="90" y1="342.0" x2="760" y2="342.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="347.0" text-anchor="end" font-size="12" fill="#475569">20 ms</text>
-<line x1="90" y1="274.0" x2="760" y2="274.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="279.0" text-anchor="end" font-size="12" fill="#475569">40 ms</text>
-<line x1="90" y1="206.0" x2="760" y2="206.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="211.0" text-anchor="end" font-size="12" fill="#475569">60 ms</text>
-<line x1="90" y1="138.0" x2="760" y2="138.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="143.0" text-anchor="end" font-size="12" fill="#475569">80 ms</text>
+<line x1="90" y1="325.0" x2="760" y2="325.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="330.0" text-anchor="end" font-size="12" fill="#475569">15 ms</text>
+<line x1="90" y1="240.0" x2="760" y2="240.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="245.0" text-anchor="end" font-size="12" fill="#475569">30 ms</text>
+<line x1="90" y1="155.0" x2="760" y2="155.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="160.0" text-anchor="end" font-size="12" fill="#475569">45 ms</text>
 <line x1="90" y1="70.0" x2="760" y2="70.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="75.0" text-anchor="end" font-size="12" fill="#475569">100 ms</text>
-<rect x="127.6875" y="410.0" width="92.12500000000001" height="0.0" fill="#f97316" rx="4" opacity="0.85"/>
+<text x="75" y="75.0" text-anchor="end" font-size="12" fill="#475569">60 ms</text>
+<rect x="127.6875" y="227.19333333333336" width="92.12500000000001" height="182.80666666666664" fill="#f97316" rx="4" opacity="0.85"/>
+<text x="173.75" y="217.19333333333336" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">+32.3 ms</text>
+<circle cx="173.75" cy="227.19333333333336" r="4" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
 <text x="173.75" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L1 DL</text>
 <rect x="295.1875" y="410.0" width="92.12500000000001" height="0.0" fill="#ea580c" rx="4" opacity="0.85"/>
 <text x="341.25" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L1 UL</text>
-<rect x="462.6875" y="410.0" width="92.12500000000001" height="0.0" fill="#dc2626" rx="4" opacity="0.85"/>
+<rect x="462.6875" y="160.61" width="92.12500000000001" height="249.39" fill="#dc2626" rx="4" opacity="0.85"/>
+<text x="508.75" y="150.61" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">+44.0 ms</text>
+<circle cx="508.75" cy="160.61" r="4" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
 <text x="508.75" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L2 DL</text>
 <rect x="630.1875" y="410.0" width="92.12500000000001" height="0.0" fill="#b91c1c" rx="4" opacity="0.85"/>
 <text x="676.25" y="435" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">L2 UL</text>

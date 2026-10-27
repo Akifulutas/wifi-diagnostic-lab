@@ -4,14 +4,12 @@
 <text x="400.0" y="52" text-anchor="middle" font-size="13" fill="#64748b">Additional queueing delay introduced by saturation TCP load (Δ = RTT_loaded - RTT_idle)</text>
 <line x1="90" y1="410.0" x2="760" y2="410.0" stroke="#e2e8f0" stroke-width="1"/>
 <text x="75" y="415.0" text-anchor="end" font-size="12" fill="#475569">0 ms</text>
-<line x1="90" y1="342.0" x2="760" y2="342.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="347.0" text-anchor="end" font-size="12" fill="#475569">20 ms</text>
-<line x1="90" y1="274.0" x2="760" y2="274.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="279.0" text-anchor="end" font-size="12" fill="#475569">40 ms</text>
-<line x1="90" y1="206.0" x2="760" y2="206.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="211.0" text-anchor="end" font-size="12" fill="#475569">60 ms</text>
-<line x1="90" y1="138.0" x2="760" y2="138.0" stroke="#e2e8f0" stroke-width="1"/>
-<text x="75" y="143.0" text-anchor="end" font-size="12" fill="#475569">80 ms</text>
+<line x1="90" y1="325.0" x2="760" y2="325.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="330.0" text-anchor="end" font-size="12" fill="#475569">25 ms</text>
+<line x1="90" y1="240.0" x2="760" y2="240.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="245.0" text-anchor="end" font-size="12" fill="#475569">50 ms</text>
+<line x1="90" y1="155.0" x2="760" y2="155.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="75" y="160.0" text-anchor="end" font-size="12" fill="#475569">75 ms</text>
 <line x1="90" y1="70.0" x2="760" y2="70.0" stroke="#e2e8f0" stroke-width="1"/>
 <text x="75" y="75.0" text-anchor="end" font-size="12" fill="#475569">100 ms</text>
 <rect x="127.6875" y="309.86546666666663" width="92.12500000000001" height="100.13453333333334" fill="#f97316" rx="4" opacity="0.85"/>

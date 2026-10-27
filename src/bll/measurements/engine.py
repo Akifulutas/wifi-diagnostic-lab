@@ -220,15 +220,40 @@ class MeasurementEngine:
             iperf_result[1] = out
             iperf_result[2] = err
 
-        t_load = threading.Thread(target=_run_iperf, daemon=True)
-        t_load.start()
+        probe_res_e2e = [0, "", ""]
+        probe_res_gw = [0, "", ""]
+        probe_res_obs = [0, "", ""]
 
-        # Concurrent probes during active load
-        code, stdout, stderr = self.backend.execute_tool(
-            "bll-client",
-            ["ping", "-c", str(max(2, int(self.durations.load_s * 2))), self.target_ip],
-        )
+        probe_count_str = str(max(2, int(self.durations.load_s * 2)))
+
+        def _run_e2e():
+            c, o, e = self.backend.execute_tool("bll-client", ["ping", "-c", probe_count_str, self.target_ip])
+            probe_res_e2e[0], probe_res_e2e[1], probe_res_e2e[2] = c, o, e
+
+        def _run_gw():
+            c, o, e = self.backend.execute_tool("bll-client", ["ping", "-c", probe_count_str, "10.10.2.1"])
+            probe_res_gw[0], probe_res_gw[1], probe_res_gw[2] = c, o, e
+
+        def _run_obs():
+            if not is_indistinguishable:
+                c, o, e = self.backend.execute_tool("bll-observer", ["ping", "-c", probe_count_str, self.target_ip])
+                probe_res_obs[0], probe_res_obs[1], probe_res_obs[2] = c, o, e
+
+        t_load = threading.Thread(target=_run_iperf, daemon=True)
+        t_e2e = threading.Thread(target=_run_e2e, daemon=True)
+        t_gw = threading.Thread(target=_run_gw, daemon=True)
+        t_obs = threading.Thread(target=_run_obs, daemon=True)
+
+        t_load.start()
+        t_e2e.start()
+        t_gw.start()
+        t_obs.start()
+
+        # Wait for active saturation load and all concurrent vantage probes
         t_load.join(timeout=self.durations.load_s + 10.0)
+        t_e2e.join(timeout=5.0)
+        t_gw.join(timeout=5.0)
+        t_obs.join(timeout=5.0)
 
         load_code, load_out, load_err = iperf_result[0], iperf_result[1], iperf_result[2]
         pipeline.save_raw_log("iperf3_load.json", load_out)
@@ -240,6 +265,7 @@ class MeasurementEngine:
         except Exception:
             pass
 
+        stdout, stderr = probe_res_e2e[1], probe_res_e2e[2]
         pipeline.save_raw_log("ping_load.log", stdout + "\n" + stderr)
         for line in stdout.splitlines():
             s = ping_adapter_e2e.parse_line(line, Phase.SATURATION_LOAD.value, clock.read().monotonic_ns)
@@ -254,7 +280,7 @@ class MeasurementEngine:
                 ping_samples.append(s)
 
         # Near-link probe during load
-        code_gw, gw_out, _ = self.backend.execute_tool("bll-client", ["ping", "-c", "2", "10.10.2.1"])
+        gw_out = probe_res_gw[1]
         for line in gw_out.splitlines():
             s = ping_adapter_near.parse_line(line, Phase.SATURATION_LOAD.value, clock.read().monotonic_ns)
             if s:
@@ -264,7 +290,7 @@ class MeasurementEngine:
 
         # Far-link probe during load
         if not is_indistinguishable:
-            code_obs, obs_out, _ = self.backend.execute_tool("bll-observer", ["ping", "-c", "2", self.target_ip])
+            obs_out = probe_res_obs[1]
             for line in obs_out.splitlines():
                 s = ping_adapter_far.parse_line(line, Phase.SATURATION_LOAD.value, clock.read().monotonic_ns)
                 if s:

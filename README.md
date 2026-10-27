@@ -5,12 +5,12 @@
 [![E2E Verification](https://img.shields.io/badge/e2e%20acceptance-285%20passed%20%7C%201%20skipped-success.svg)]()
 [![Hardware Telemetry](https://img.shields.io/badge/empirical%20telemetry-Wi--Fi%206%20%2B%20FRITZ!Box-blueviolet.svg)]()
 [![Inference Engine](https://img.shields.io/badge/inference-set--valued%20abstention-orange.svg)]()
-[![Privacy Standards](https://img.shields.io/badge/privacy-RFC%202330%20%26%20RFC%205737-informational.svg)]()
+[![Data Privacy](https://img.shields.io/badge/privacy-IPv4%20pseudonymization%20%26%20MAC%20scrubbing-informational.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An open-source experimental research testbed and diagnostic system for investigating **Wi-Fi 6 throughput dynamics**, **loaded latency (Bufferbloat)**, and **evidence-based network bottleneck localization under constrained edge vantages**.
+An open-source diagnostic and measurement project investigating **Wi-Fi 6 throughput dynamics**, **loaded latency (Bufferbloat)**, and **bottleneck localization under constrained edge vantage points**.
 
-> **Academic & Research Context:** Developed as an undergraduate research engineering project at **RWTH Aachen University** (Chair of Computer Science / Network Architectures). This repository investigates how much bottleneck localization is mathematically justifiable from edge measurements alone without router firmware modifications, combining live residential Wi-Fi 6 hardware telemetry with a Linux network-namespace reference testbed.
+> **Project Context:** Wi-Fi Diagnostic Lab is an independent learning project I started while studying wireless networking and network measurement. Using my home network, I built small Python experiments to compare latency under idle and loaded conditions and practise processing and visualising measurement data. The repository also contains experimental extensions for controlled network scenarios and simplified queue simulations. My goal is to connect concepts from my reading with practical observations, understand the limitations of the measurements, and improve the implementation as I learn.
 
 ---
 
@@ -32,40 +32,44 @@ An open-source experimental research testbed and diagnostic system for investiga
 
 ## 🎯 Motivation & Problem Statement
 
-Conventional network speed tests and diagnostic utilities suffer from a fundamental fallacy: they measure latency under active TCP load from a single client endpoint to a cloud server, observe elevated round-trip times (Bufferbloat), and arbitrarily assign blame—often asserting either *"It's your Wi-Fi"* or *"It's your ISP"*.
+Conventional network speed tests and diagnostic utilities often evaluate performance from a single client endpoint to a cloud server, observe elevated round-trip times under load (Bufferbloat), and assign a single cause without distinguishing intermediate network hops.
 
-In real-world residential edge networks, loaded latency can originate in multiple distinct physical layers:
-1. **The Wireless Access Link:** Dynamic 802.11 rate adaptation (MCS fallback) caused by drywall attenuation or multipath fading drastically increases packet transmission airtime, backing up packets in the AP transmission queue.
-2. **The Residential Gateway:** Egress traffic shaping, CPU exhaustion, or undersized queue limits in customer-premises equipment (CPE).
-3. **The Upstream WAN Link:** Oversized drop-tail FIFO buffers at DSLAMs, CMTS, or ISP access nodes.
+In residential edge networks, loaded latency can arise in distinct physical segments:
+1. **The Wireless Access Link:** Dynamic 802.11 rate adaptation (MCS fallback) caused by path loss or obstacle attenuation increases transmission airtime per frame, backing up packets in the AP transmission queue.
+2. **The Residential Gateway:** Egress traffic shaping, CPU load, or buffer limits in customer-premises equipment (CPE).
+3. **The Upstream WAN Link:** Drop-tail FIFO buffers at DSLAMs, CMTS, or ISP access nodes.
 
-**The Research Goal:**  
-Rather than guessing a single root cause when evidence is incomplete, this project establishes a **set-valued, abstention-capable localization model**. When edge vantage points are insufficient to disambiguate the bottleneck, the engine mathematically retains uncertainty (e.g. candidate region set $\mathcal{R}_{\text{cand}} = \{\text{near}, \text{gateway}\}$ with `not_excluded_regions = ["near_link", "gateway_node"]` and `abstained = True`) and explicitly specifies the minimum-cost subsequent measurement (such as deploying a wired observer tap) required to resolve ambiguity.
+**Project Goal:**  
+Rather than guessing a single root cause when evidence is incomplete, this project explores a **set-valued, abstention-capable localization model**. When edge vantage points are insufficient to disambiguate the bottleneck, the engine retains uncertainty (e.g. candidate region set $\mathcal{R}_{\text{cand}} = \{\text{near}, \text{gateway}\}$ with `not_excluded_regions = ["near_link", "gateway_node"]` and `abstained = True`) and suggests an informative subsequent measurement (such as deploying a wired observer tap) to resolve ambiguity.
 
 ---
 
 ## 🔬 Key Empirical Findings (Live Hardware)
 
 Live residential experiments were conducted on **macOS (Darwin arm64)** using an **Apple Silicon M1 Pro client** connected to an **AVM FRITZ!Box 7530 AX Access Point** (5 GHz UNII-2C, Channel 48, 80 MHz channel width, 802.11ax) across two spatial configurations:
-- **Position 1 (L1: Near AP, Line-of-Sight):** 1.2 m distance, clear Fresnel zone.
+- **Position 1 (L1: Near AP, Line-of-Sight):** 1.2 m distance, clear line-of-sight.
 - **Position 2 (L2: Adjacent Room, Non-Line-of-Sight):** 8.5 m distance, obstructed by interior drywall.
 
-### Measured Telemetry Comparison
+### Measured Telemetry & Working Observations
 
-| Metric | Position 1 (L1: LOS, 1.2m) | Position 2 (L2: NLOS, 8.5m) | Physical Mechanism & Diagnostic Impact |
+> [!NOTE]
+> **Observation vs. Explanation:** The metrics below distinguish between direct empirical measurements (telemetry) and the inferred physical explanations (hypotheses). Synthetic calibration runs (~812 Mbps) are kept strictly separate from residential measurements (~47 Mbps).
+
+| Metric | Position 1 (L1: LOS, 1.2m) | Position 2 (L2: NLOS, 8.5m) | Empirical Observation vs. Physical Hypothesis |
 | :--- | :---: | :---: | :--- |
-| **Physical RSSI / Noise** | **-52 dBm / -88 dBm** | **-72 dBm / -89 dBm** | 20 dB RF path loss through drywall partition |
-| **Signal-to-Noise Ratio (SNR)** | **36 dB** (Pristine channel) | **17 dB** (Contention boundary) | 19 dB degradation in channel quality |
-| **802.11ax MCS Rate** | **MCS 10** (1024-QAM) | **MCS 2** (QPSK) | AP/Client dynamic rate adaptation fallback |
-| **Physical Link Capacity** | **1134.0 Mbps** | **136.0 Mbps** | **88% reduction in wireless PHY capacity** |
-| **Idle Wi-Fi RTT (p95)** | **4.4 ms** | **4.3 ms** | Unloaded baseline latency is virtually identical |
-| **Loaded Wi-Fi RTT (p95)** | **58.5 ms** | **118.9 ms** | **2x queue latency inflation under TCP load** |
-| **Wi-Fi Hop Bloat ($\Delta RTT_{\text{wifi}}$)** | **+54.1 ms** | **+114.6 ms** | Longer packet airtime backs up AP MAC software queue |
-| **WAN Access Bloat ($\Delta RTT_{\text{wan}}$)** | **+43.9 ms** | **+13.4 ms** | Access link queueing under concurrent upstream load |
-| **Total End-to-End Bloat** | **+98.0 ms** | **+128.0 ms** | Total delay observed by client under saturation load |
-| **Localization Verdict** | `COMPOUND_BOTTLENECK` | `COMPOUND_BOTTLENECK` | **+114.6 ms on local Wi-Fi hop vs. +13.4 ms on WAN link** |
+| **Physical RSSI / Noise** | **-52 dBm / -88 dBm** | **-72 dBm / -89 dBm** | *Observation:* 20 dB RF path loss through drywall partition |
+| **Signal-to-Noise Ratio (SNR)** | **36 dB** | **17 dB** | *Observation:* 19 dB reduction in signal-to-noise ratio |
+| **802.11ax MCS Rate** | **MCS 10** (1024-QAM) | **MCS 2** (QPSK) | *Hypothesis:* AP dynamic rate adaptation falls back to robust modulation |
+| **Physical Link Capacity** | **1134.0 Mbps** | **136.0 Mbps** | *Observation:* 88% reduction in negotiated PHY link rate |
+| **Measured Download Throughput** | **47.0 Mbps** | **43.3 Mbps** | *Observation:* Residential internet plan limit (~50 Mbps subscription tier) |
+| **Idle Wi-Fi RTT (p95)** | **4.4 ms** | **4.3 ms** | *Observation:* Unloaded baseline latency is virtually identical across locations |
+| **Loaded Wi-Fi RTT (p95)** | **58.5 ms** | **118.9 ms** | *Observation:* 2x queue latency inflation observed under active TCP load |
+| **Wi-Fi Hop Bloat ($\Delta RTT_{\text{wifi}}$)** | **+54.1 ms** | **+114.6 ms** | *Hypothesis:* Increased frame airtime at MCS 2 backs up AP transmission queue |
+| **WAN Access Bloat ($\Delta RTT_{\text{wan}}$)** | **+43.9 ms** | **+13.4 ms** | *Observation:* Remote hop delay elevation under upstream saturation |
+| **Total End-to-End Bloat** | **+98.0 ms** | **+128.0 ms** | *Observation:* Total round-trip time inflation observed by edge client |
+| **Localization Candidate Set** | `{near_link, far_link}` | `{near_link, far_link}` | *Engine Output:* Multi-hop delay elevation observed on both local hop and WAN |
 
-> **Key Physical Insight:** An unloaded ping test cannot detect wireless degradation: idle RTT at L2 is ~4.3 ms (identical to L1). However, under active TCP saturation, the lower PHY rate (MCS 2) requires drastically more airtime per frame, causing bufferbloat (+114.6 ms) directly inside the local wireless transmission queue.
+> **Key Observation:** An unloaded ping test does not reveal wireless rate adaptation: idle RTT at L2 is ~4.3 ms (identical to L1). Under active load generation, however, the lower PHY rate (MCS 2) requires significantly more airtime per frame, producing noticeable queue delay (+114.6 ms) on the local wireless hop.
 
 Raw time-series telemetry and cryptographically signed manifests are archived in:  
 [`data/raw/live_home_runs/`](data/raw/live_home_runs/)
@@ -244,17 +248,20 @@ wifi-lab analyze data/raw/live_home_runs \
 ### 5. Run Controlled Benchmark & Generate Static HTML Report
 
 ```bash
-# Execute counterexample suite via simulation backend
-bll run --backend mock_simulation --config configs/pilot.toml --output runs/pilot_01
+# Execute counterexample run via simulation backend
+bll run --backend mock_simulation --scenario residential_dsl_near_fifo --out-dir runs
 
-# Execute deterministic inference engine
-bll infer --run-dir runs/pilot_01
+# Execute deterministic inference engine on run
+bll infer runs/<run_id>
 
-# Export sanitized dataset complying with RFC 2330 / RFC 5737
-bll export --run-dir runs/pilot_01 --output export/redacted_dataset --redact
+# Export sanitized dataset with MAC, IPv4, and hostname scrubbing
+bll export runs/<run_id> --out-dir export/redacted_dataset --redact
 
-# Generate zero-CDN offline HTML research report
-bll report --run-dir runs/pilot_01 --output results/bll_report.html
+# Generate zero-CDN offline HTML report
+bll report runs/<run_id> --out results/bll_report.html
+
+# Evaluate double-blind benchmark suite across scenarios
+bll evaluate --runs-dir runs --ground-truth-dir ground_truth --json
 ```
 
 ---
@@ -265,10 +272,10 @@ The automated analysis pipeline generates publication-ready vector figures (SVG)
 
 | Figure | Description | Key Insight |
 | :--- | :--- | :--- |
-| **[Figure 1](results/figures/live_home/fig1_throughput_by_condition.svg)** | Throughput by Condition & Direction | L1 reaches near GbE ceiling; L2 experiences 39% throughput reduction due to RF path loss. |
+| **[Figure 1](results/figures/live_home/fig1_throughput_by_condition.svg)** | Throughput by Condition & Direction | L1 reaches ~47.0 Mbps; L2 reaches ~43.3 Mbps on home internet tier. (Pilot calibration reaches ~812 Mbps). |
 | **[Figure 2](results/figures/live_home/fig2_rtt_ecdf.svg)** | Latency Empirical CDF | Bifurcation between idle baseline (< 5 ms) and loaded saturation (> 80 ms). |
-| **[Figure 3](results/figures/live_home/fig3_rtt_timeseries.svg)** | 4-Phase Time-Series Dynamics | Shows steady idle baseline, slow-start ramp, saturation plateau, and rapid buffer drain recovery. |
-| **[Figure 4](results/figures/live_home/fig4_loaded_delta_rtt.svg)** | Loaded $\Delta RTT$ (Bufferbloat) | Isolates +114.6 ms of queueing delay to the local Wi-Fi hop at L2. |
+| **[Figure 3](results/figures/live_home/fig3_rtt_timeseries.svg)** | Dynamic 3-Phase Time-Series Dynamics | Shows idle baseline (~8s), active load ramp (~15s), and buffer drain recovery (~8s) with real relative timestamps. |
+| **[Figure 4](results/figures/live_home/fig4_loaded_delta_rtt.svg)** | Loaded $\Delta RTT$ (Bufferbloat) | Shows +54.1 ms delay at L1 vs. +114.6 ms at L2 on the local Wi-Fi hop. |
 | **[Figure 5](results/figures/fig5_mlo_vs_single_link.svg)** | Wi-Fi 7 MLO Simulation | Compares Single-Link 5 GHz vs. MLO (2.4 GHz + 5 GHz) queueing latency reduction. |
 
 ---
@@ -297,19 +304,19 @@ gitleaks git .
 
 ## 🔒 Data Provenance & Privacy Ethics
 
-To comply with open-science principles and privacy standards (RFC 2330 and RFC 5737):
-1. **Explicit Data Provenance:** Synthetic pilot runs (`data/raw/pilot/`) are explicitly distinguished from real physical residential measurements (`data/raw/live_home_runs/`).
-2. **Deterministic Pseudonymization:** `bll export --redact` scrubs all MAC addresses (`02:00:00:xx:xx:xx`), maps private IPv4 addresses to the documentation subnet (`192.0.2.0/24`), and sanitizes Wi-Fi SSIDs while preserving mathematical delta RTT relationships.
-3. **Cryptographic Integrity:** Every experiment run includes an immutable `manifest.json` with SHA-256 digests over all raw logs and analytical tables.
+To protect network privacy while maintaining data utility for open evaluation:
+1. **Explicit Data Separation:** Synthetic pilot calibration runs (`data/raw/pilot/`) are kept strictly separate from real physical residential measurements (`data/raw/live_home_runs/`).
+2. **Deterministic Pseudonymization:** `bll export --redact` scrubs all MAC addresses (`02:00:00:xx:xx:xx`), maps local IPv4 addresses to the RFC 5737 documentation prefix (`192.0.2.0/24`), masks device hostnames (`redacted-host.local`), and sanitizes Wi-Fi SSIDs while preserving relative timestamps and mathematical $\Delta RTT$ relationships.
+3. **Integrity Manifests:** Every run directory includes an immutable `manifest.json` recording SHA-256 digests over all raw logs and analytical tables.
 
 ---
 
-## 🎓 Academic Context & About the Author
+## 🎓 About the Author & Project Background
 
-This project was conceived and developed by **Akif Ulutaş**, an undergraduate Computer Science / Computer Engineering student at **RWTH Aachen University**.
+This project was developed by **Akif Ulutaş**, an undergraduate student at **RWTH Aachen University**.
 
-- **Research Interests:** Computer Networks, Wireless Systems, Active Queue Management, Distributed Systems, and Measurement-Driven Diagnostics.
-- **Project Purpose:** Created as an independent research engineering testbed in preparation for the **Undergraduate Research Opportunities Programme (UROP)**. It reflects a commitment to reproducible open science, rigorous software architecture, deterministic testing, and continuous learning.
+- **Motivation:** Developed as a practical learning project to explore network performance analysis, loaded latency, and differential telemetry processing on real devices.
+- **UROP Context:** Created as an independent engineering portfolio project in preparation for the **Undergraduate Research Opportunities Programme (UROP)**. It reflects an enthusiasm for computer networks, clean modular code, automated testing, and a hands-on approach to connecting textbook principles with real-world observations.
 
 ---
 

@@ -557,6 +557,13 @@ ALL_12_SCENARIOS = [
     help="Scenario ID (e.g. healthy_baseline, near_fifo, far_fifo, fixed_delay_no_queue).",
 )
 @click.option(
+    "--config",
+    "-c",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=None,
+    help="Path to TOML or JSON experiment configuration file.",
+)
+@click.option(
     "--list-scenarios",
     is_flag=True,
     help="List all 12 controlled reference counterexample scenarios.",
@@ -599,6 +606,8 @@ ALL_12_SCENARIOS = [
 )
 @click.option(
     "--out-dir",
+    "--output",
+    "-o",
     type=click.Path(file_okay=False, dir_okay=True, path_type=Path),
     default=Path("runs"),
     help="Base directory where immutable runs/<run_id>/ are saved.",
@@ -617,6 +626,7 @@ ALL_12_SCENARIOS = [
 )
 def run_cmd(
     scenario: str,
+    config: Path | None,
     list_scenarios: bool,
     duration: int,
     duration_idle: float | None,
@@ -637,6 +647,20 @@ def run_cmd(
                 click.echo(f"{s['id']:<38} : {s['description']}")
         return
 
+    # Ingest parameters from config file if provided
+    if config:
+        try:
+            import tomllib
+            with open(config, "rb") as f:
+                cfg_data = tomllib.load(f)
+            if "phases" in cfg_data:
+                ph = cfg_data["phases"]
+                duration_idle = duration_idle or ph.get("idle_duration_s")
+                duration_load = duration_load or ph.get("load_duration_s")
+                duration_recovery = duration_recovery or ph.get("recovery_duration_s")
+        except Exception:
+            pass
+
     # Validate scenario identifier
     valid_scenario_ids = {s["id"] for s in ALL_12_SCENARIOS}
     aliases = {
@@ -652,6 +676,7 @@ def run_cmd(
         "aqm_cake_diffserv_prioritization": "fifo_vs_fqcodel_vs_cake",
         "fifo_vs_fqcodel_vs_cake": "fifo_vs_fqcodel_vs_cake",
         "protocol_discrepancy_icmp_udp_tcp": "protocol_discrepancy_icmp_udp_tcp",
+        "protocol_discrepancy_icmp_vs_tcp": "protocol_discrepancy_icmp_udp_tcp",
         "indistinguishable_access_vs_gateway": "indistinguishable_pair_a",
         "indistinguishable_pair_a": "indistinguishable_pair_a",
         "indistinguishable_pair_b": "indistinguishable_pair_b",
@@ -732,8 +757,17 @@ def run_cmd(
 # ==============================================================================
 @main.command("infer")
 @click.argument(
-    "run_dir",
+    "run_dir_pos",
+    required=False,
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    default=None,
+)
+@click.option(
+    "--run-dir",
+    "-r",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    default=None,
+    help="Path to run directory.",
 )
 @click.option(
     "--vantage-profile",
@@ -750,12 +784,15 @@ def run_cmd(
 )
 @click.option(
     "--out",
+    "--output",
+    "-o",
     type=click.Path(dir_okay=False, path_type=Path),
     default=None,
     help="Write inference JSON artifact to specified file path.",
 )
 def infer_cmd(
-    run_dir: Path,
+    run_dir_pos: Path | None,
+    run_dir: Path | None,
     vantage_profile: str,
     output_json: bool,
     out: Path | None,
@@ -764,12 +801,17 @@ def infer_cmd(
 
     NOTE: The inference engine is physically and logically prohibited from accessing ground_truth/.
     """
-    if "ground_truth" in str(run_dir):
+    target = run_dir_pos or run_dir
+    if not target:
+        click.echo("Error: Must specify run directory as positional argument or with --run-dir.", err=True)
+        sys.exit(2)
+
+    if "ground_truth" in str(target):
         click.echo("Security Error: Inference engine is prohibited from accessing ground_truth/.", err=True)
         sys.exit(1)
     try:
         from bll.inference.engine import run_inference
-        verdict = run_inference(run_dir=run_dir, vantage_profile=vantage_profile)
+        verdict = run_inference(run_dir=target, vantage_profile=vantage_profile)
         verdict_json = verdict.model_dump_json(indent=2)
         if out:
             out.write_text(verdict_json, encoding="utf-8")
@@ -781,7 +823,7 @@ def infer_cmd(
 
 
 # ==============================================================================
-# Command 5: bll export (Reporting & RFC 2330 Redaction)
+# Command 5: bll export (Reporting & Privacy Redaction)
 # ==============================================================================
 @main.command("export")
 @click.argument(
@@ -804,6 +846,8 @@ def infer_cmd(
 )
 @click.option(
     "--out-dir",
+    "--output",
+    "-o",
     type=click.Path(file_okay=False, dir_okay=True, path_type=Path),
     default=Path("export"),
     help="Output directory for exported artifacts.",
@@ -811,7 +855,7 @@ def infer_cmd(
 @click.option(
     "--redact",
     is_flag=True,
-    help="Perform RFC 2330 privacy redaction (scrub MACs, private IPs, SSIDs, hostnames).",
+    help="Perform privacy redaction (scrub MACs, private IPs, SSIDs, hostnames).",
 )
 @click.option(
     "--html",
@@ -826,7 +870,7 @@ def export_cmd(
     redact: bool,
     html: bool,
 ) -> None:
-    """Export run telemetry, generate zero-CDN HTML reports, and sanitize data under RFC 2330."""
+    """Export run telemetry, generate zero-CDN HTML reports, and sanitize data."""
     effective_src = target_dir or run_dir or dataset
     if not effective_src:
         click.echo("Error: Must specify either target directory, --run-dir, or --dataset.", err=True)
@@ -852,11 +896,22 @@ def export_cmd(
 # ==============================================================================
 @main.command("report")
 @click.argument(
-    "run_dir",
+    "run_dir_pos",
+    required=False,
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    default=None,
+)
+@click.option(
+    "--run-dir",
+    "-r",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    default=None,
+    help="Path to run directory.",
 )
 @click.option(
     "--out",
+    "--output",
+    "-o",
     type=click.Path(dir_okay=False, path_type=Path),
     default=None,
     help="Path to output HTML report file.",
@@ -867,33 +922,33 @@ def export_cmd(
     is_flag=True,
     help="Emit report summary as JSON.",
 )
-def report_cmd(run_dir: Path, out: Path | None, output_json: bool) -> None:
+def report_cmd(
+    run_dir_pos: Path | None,
+    run_dir: Path | None,
+    out: Path | None,
+    output_json: bool,
+) -> None:
     """Generate static zero-CDN HTML or JSON report for a completed run."""
-    html_content = (
-        "<!DOCTYPE html>\n<html><head><title>BLL Report</title>\n"
-        "<style>body { font-family: sans-serif; margin: 2rem; } .card { border: 1px solid #ccc; padding: 1rem; border-radius: 4px; }</style>\n"
-        "</head><body>\n"
-        "<h1>Bufferbloat Localization Lab — Offline Report</h1>\n"
-        "<div class='card'>\n"
-        "<h2>Experiment Summary</h2>\n"
-        f"<p>Run ID: {run_dir.name}</p>\n"
-        "<svg width='400' height='200' viewBox='0 0 400 200'><rect width='400' height='200' fill='#f8f9fa'/><polyline fill='none' stroke='#007acc' stroke-width='2' points='20,180 80,180 140,50 200,45 260,180 380,180'/><text x='30' y='30' fill='#333'>RTT Over Time (ms)</text></svg>\n"
-        "</div>\n</body></html>"
-    )
-    if out:
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(html_content, encoding="utf-8")
+    target = run_dir_pos or run_dir
+    if not target:
+        click.echo("Error: Must specify run directory as positional argument or with --run-dir.", err=True)
+        sys.exit(2)
+
+    from bll.reporting.html_report import generate_report
+
+    out_file = out or (target / "report.html")
+    generate_report(run_dir=target, output_file=out_file)
 
     summary = {
-        "run_id": run_dir.name,
-        "html_report": str(out) if out else None,
+        "run_id": target.name,
+        "html_report": str(out_file),
         "has_inlined_svgs": True,
         "zero_cdn_compliant": True,
     }
     if output_json:
         click.echo(json.dumps(summary, indent=2))
     else:
-        click.echo(f"Report generated: {out or 'in-memory'}")
+        click.echo(f"Report generated: {out_file}")
 
 
 # ==============================================================================

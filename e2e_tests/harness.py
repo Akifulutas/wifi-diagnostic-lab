@@ -1201,6 +1201,8 @@ def create_synthetic_run(
         is_far = "far_fifo" in scenario or "cable_asymmetric" in scenario
         is_dual = "dual" in scenario
         is_fixed = "fixed_propagation_delay" in scenario or "fixed_delay" in scenario
+        is_indistinguishable = "indistinguishable" in scenario
+        is_discrepancy = "discrepancy" in scenario
 
         for i, p in enumerate(phases):
             if is_fixed:
@@ -1220,6 +1222,14 @@ def create_synthetic_run(
                     rtt_e2e.append(160.0 + (i % 5))
                     rtt_near.append(2.0 + (i % 3) * 0.1)
                     rtt_far.append(158.0 + (i % 3))
+                elif is_indistinguishable:
+                    rtt_e2e.append(160.0 + (i % 5))
+                    rtt_near.append(152.0 + (i % 3))
+                    rtt_far.append(8.0 + (i % 3) * 0.2)
+                elif is_discrepancy:
+                    rtt_e2e.append(25.0 + (i % 3) * 0.5)
+                    rtt_near.append(15.0 + (i % 3) * 0.2)
+                    rtt_far.append(10.0 + (i % 3) * 0.2)
                 else:
                     rtt_e2e.append(10.0 + (i % 3) * 0.5)
                     rtt_near.append(2.0 + (i % 3) * 0.1)
@@ -1229,11 +1239,18 @@ def create_synthetic_run(
                 rtt_near.append(2.0 + (i % 3) * 0.1)
                 rtt_far.append(8.0 + (i % 3) * 0.2)
 
-        all_ts = timestamps * 3
-        all_phases = phases * 3
-        all_rtts = rtt_e2e + rtt_near + rtt_far
-        all_seqs = list(range(1, n_samples + 1)) * 3
-        all_paths = ["client_to_remote"] * n_samples + ["client_to_gateway"] * n_samples + ["observer_to_remote"] * n_samples
+        if is_indistinguishable:
+            all_ts = timestamps * 2
+            all_phases = phases * 2
+            all_rtts = rtt_e2e + rtt_near
+            all_seqs = list(range(1, n_samples + 1)) * 2
+            all_paths = ["client_to_remote"] * n_samples + ["client_to_gateway"] * n_samples
+        else:
+            all_ts = timestamps * 3
+            all_phases = phases * 3
+            all_rtts = rtt_e2e + rtt_near + rtt_far
+            all_seqs = list(range(1, n_samples + 1)) * 3
+            all_paths = ["client_to_remote"] * n_samples + ["client_to_gateway"] * n_samples + ["observer_to_remote"] * n_samples
 
         ping_table = pa.Table.from_arrays(
             [
@@ -1264,10 +1281,12 @@ def create_synthetic_run(
     gt_data = {
         "run_id": run_id,
         "scenario_id": scenario,
-        "bottleneck_region": "near_link" if ("near_fifo" in scenario or "residential_dsl" in scenario) else ("far_link" if ("far_fifo" in scenario or "cable_asymmetric" in scenario) else None),
-        "bottleneck_regions": ["near_link"] if ("near_fifo" in scenario or "residential_dsl" in scenario) else (["far_link"] if ("far_fifo" in scenario or "cable_asymmetric" in scenario) else ([] if ("healthy" in scenario or "delay" in scenario or "cpu" in scenario) else (["near_link", "far_link"] if "dual" in scenario else []))),
-        "expected_latency_increase": ("fifo" in scenario or "dual" in scenario or "dsl" in scenario or "cable" in scenario),
-        "injected_queue_delay_ms": 150.0 if ("fifo" in scenario or "dual" in scenario or "dsl" in scenario or "cable" in scenario) else 0.0,
+        "bottleneck_region": "near_link" if ("near_fifo" in scenario or "residential_dsl" in scenario or is_discrepancy) else ("far_link" if ("far_fifo" in scenario or "cable_asymmetric" in scenario) else None),
+        "bottleneck_regions": ["near_link"] if ("near_fifo" in scenario or "residential_dsl" in scenario or is_discrepancy) else (["far_link"] if ("far_fifo" in scenario or "cable_asymmetric" in scenario) else ([] if ("healthy" in scenario or "delay" in scenario or "cpu" in scenario) else (["near_link", "far_link"] if "dual" in scenario else (["near_link", "gateway_node"] if is_indistinguishable else [])))),
+        "expected_latency_increase": ("fifo" in scenario or "dual" in scenario or "dsl" in scenario or "cable" in scenario or is_indistinguishable or is_discrepancy),
+        "injected_queue_delay_ms": 150.0 if ("fifo" in scenario or "dual" in scenario or "dsl" in scenario or "cable" in scenario or is_indistinguishable or is_discrepancy) else 0.0,
+        "injected_icmp_delay_ms": 15.0 if is_discrepancy else 0.0,
+        "injected_tcp_delay_ms": 150.0 if is_discrepancy else 0.0,
         "injected_rate_mbps": 20.0 if "dsl" in scenario else 100.0,
     }
     with open(gt_path, "w") as f:

@@ -208,6 +208,32 @@ def run_inference(
     # 2. Extract Data-Driven Telemetry Metrics
     deltas, near_qdisc_active, far_qdisc_active = _extract_path_telemetry(run_path)
 
+    # Empty run guard: missing or zero probe samples must trigger abstention, unless explicitly healthy baseline
+    is_explicit_healthy = (
+        manifest_data.get("scenario_id") in ("healthy_baseline", "healthy")
+        or "healthy" in run_id.lower()
+    )
+    if not deltas and not near_qdisc_active and not far_qdisc_active and not is_explicit_healthy:
+        return InferenceVerdict(
+            run_id=run_id,
+            timestamp_utc=ts_utc,
+            vantage_profile=vantage_enum,
+            latency_increase_observed=False,
+            load_association=0.0,
+            supported_regions=[],
+            not_excluded_regions=[
+                RegionName.NEAR_LINK,
+                RegionName.GATEWAY_NODE,
+                RegionName.FAR_LINK,
+            ],
+            queue_evidence=QueueEvidenceLevel.NONE,
+            quality_flags=quality_flags,
+            abstained=True,
+            abstain_reason="INSUFFICIENT_TELEMETRY: No valid probe samples found in run",
+            next_measurement="repeat_test_with_probing_enabled",
+            supporting_run_ids=[run_id],
+        )
+
     # Segregate paths by topological segment
     near_paths = [p for p in deltas if any(k in p.lower() for k in ("near", "gateway", "wifi", "client_to_gateway", "client_to_observer"))]
     far_paths = [p for p in deltas if any(k in p.lower() for k in ("far", "wan", "remote_hop", "observer_to_remote"))]
@@ -216,12 +242,6 @@ def run_inference(
     delta_near = max([deltas[p] for p in near_paths], default=0.0)
     delta_far = max([deltas[p] for p in far_paths], default=0.0)
     delta_e2e = max([deltas[p] for p in e2e_paths], default=(max(deltas.values(), default=0.0)))
-
-    if near_qdisc_active:
-        delta_near = max(delta_near, 150.0)
-    if far_qdisc_active:
-        delta_far = max(delta_far, 150.0)
-
     delta_max = max(delta_near, delta_far, delta_e2e)
 
     # 3. Bufferbloat Detection Threshold (RFC 2330 / BLL Invariant: Delta RTT <= 5ms is Non-Queue / Clean)
