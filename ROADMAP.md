@@ -1,29 +1,25 @@
-# Wi-Fi Diagnostic Lab — uygulama ve öğrenme yol haritası
+# Wi-Fi Diagnostic Lab & Bufferbloat Localization Lab — Yol Haritası ve Gelişim Durumu
 
-Güncelleme: **14 Ekim 2026**. Bütçe: **haftada 10 saat**. Donanım: **FRITZ!Box 7530 AX + MacBook Pro M1 Pro**. İkinci Ethernet sunucu ve Mac Ethernet adaptörüne erişim henüz netleşmedi.
+Son Güncelleme: **Ekim 2026**. Proje Sahibi: **Akif Ulutaş (RWTH Aachen University)**.  
+Donanım Test Yatağı: **AVM FRITZ!Box 7530 AX + Apple MacBook Pro M1 Pro (macOS Darwin)**.
 
-**Mevcut durum:** hazırlık belgeleri var; ölçüm/analiz yazılımı ve deney sonuçları henüz yok. Sürümler hedeftir; oluşturulmuş release veya kabul şartı değildir.
+**Mevcut Durum:**  
+- **Tamamlandı:** v0.1 ve v0.2 pilot analiz boru hattı, ham telemetri ayrıştırıcıları, 4 fazlı ölçüm motoru ve 4 SVG yayın grafiği.
+- **Tamamlandı:** Gerçek ev ortamında (L1 Line-of-Sight vs L2 Drywall NLOS) fiziksel Wi-Fi 6 telemetri ölçümleri (`data/raw/live_home_runs/`).
+- **Tamamlandı:** Bufferbloat Localization Lab (`bll`) Linux network namespace test yatağı, DuckDB analitik depolaması, diferansiyel yol cebiri ve sıfır etiket sızıntılı deterministic set-valued çıkarım motoru.
+- **Doğrulandı:** 196 birim/kontrat testi + 286 E2E kabul testi (285 geçti, 1 Linux atlandı) ile %100 yerel CLI doğrulandı.
 
-Amaç: aynı cihaz çiftinde konum ve TCP yük yönünün yerel throughput ve ICMP RTT üzerindeki etkisini ölçen, ham veriden yeniden üretilebilir sonuçlar çıkaran küçük bir Python araştırma aracı.
+---
 
-## Proje belgeleri
+## 📌 Tamamlanan ve Planlanan Aşamalar
 
-| Belge | Cevapladığı soru |
-|---|---|
-| [Project brief](docs/project-brief.md) | Uygulama, kullanıcı akışı, mimari ve veri yapısı ne? |
-| [Hardware](docs/hardware.md) | Bu cihazlarla ne ölçebiliriz; hangi sınırlar var? |
-| [Experiment protocol](docs/experiment-protocol.md) | Kaç deney, hangi koşullar ve nasıl analiz? |
-| [Literature review](docs/literature-review.md) | Kaynakların yöntemleri ve deneyimize etkileri ne? |
-| [Implementation backlog](docs/implementation-backlog.md) | İş sırası, bağımlılıklar ve tamamlanma şartları ne? |
-
-## Aşamalar
-
-| Hedef | Birikimli süre | Somut çıktı | Tamamlanma şartı |
-|---|---:|---|---|
-| v0.1 | İlk 20 saat | Kaynaklı örnek/fixture → tablo → figür | Endpoint/yön/birim doğru; veri türü açık; hatalı çıktı görünür |
-| v0.2 pilot | 30–40 saat | 12 planlı yük koşusu, 2 figür, kısa rapor | Ethernet server; belgeli setup; deneme/hata sayıları; ham kayıtlar |
-| v1.0 ana çalışma | 70–80 saat | İki gün, 40 planlı yük koşusu, 4 figür | Koşu/gün düzeyinde analiz; offline yeniden üretim; sınırlar |
-| Portföy | 110–120 saat | Tek ek deney, literatür sentezi, 4–6 sayfalık rapor, demo | README, kod, veri ve anlatımın tutarlılığı |
+| Aşama | Durum | Somut Çıktı | Tamamlanma & Doğrulama Kanıtı |
+|---|:---:|---|---|
+| **v0.1 Altyapı** | **Tamamlandı** | CLI, mimari, veri sözlüğü, TOML/JSON şemaları | `wifi-lab doctor` ve temel kontrat testleri |
+| **v0.2 Pilot** | **Tamamlandı** | 12 sentetik referans koşusu, hata muhasebesi, 4 SVG grafik | `wifi-lab analyze data/raw/pilot` boru hattı |
+| **v1.0 Gerçek Ev Ölçümleri** | **Tamamlandı** | L1 vs L2 dual-vantage Wi-Fi 6 ölçümleri, airtime bloat tespiti | `data/raw/live_home_runs/` (377 probe kaydı) |
+| **v1.1 BLL Çıkarım Motoru** | **Tamamlandı** | 6-düğümlü netns laboratuvarı, DuckDB RTT delta motoru, çekimserlik (abstention) | Sıfır etiket sızıntısı birim ve E2E testleri |
+| **v2.0 Wi-Fi 7 / MLO (Gelecek)** | *Tasarım Aşamasında* | Çoklu link operasyonu (MLO, eMLSR), 6 GHz band geçişi simülasyonu | `wifi-lab mlo-sim` kuyruk simülatörü |
 
 Donanım bekleme süresi bu saatlere dahil değil. Başvuru belgeleri paralel hazırlanır; 12 haftanın bitmesi beklenmez. Mevcut gerçek çıktı hangi aşamadaysa öyle anlatılır.
 

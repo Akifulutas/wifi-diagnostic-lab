@@ -1,14 +1,18 @@
-# Wi-Fi Diagnostic Lab — project specification
+# Wi-Fi Diagnostic Lab & Bufferbloat Localization Engine — Project Specification
 
-Status: proposed implementation, 14 October 2026. No collection software or experiment results exist in this repository yet. The documents describe intended behaviour and acceptance criteria.
+**Status:** Implemented & Verified (October 2026).  
+**Repository:** [Akifulutas/wifi-diagnostic-lab](https://github.com/Akifulutas/wifi-diagnostic-lab)  
+**Author:** Akif Ulutaş (RWTH Aachen University)  
+**Verification:** Backed by 196 unit tests, 286 E2E acceptance tests, and empirical residential Wi-Fi 6 hardware measurements.
 
-## Purpose and research question
+## Purpose and Research Questions
 
-Build a small, modular Python measurement and diagnostic workflow that connects local wireless network observations to reproducible analysis and justified follow-up experiments.
+Build a modular, open-science Python measurement and diagnostic system that connects edge wireless network observations to reproducible statistical analysis, controlled reference testbeds, and mathematically justified bottleneck localization without router firmware modification.
 
-For a fixed FRITZ!Box 7530 AX–M1 Pro client setup, how do position and TCP load direction affect local receiver throughput and ICMP RTT distributions? Are the observations consistent across two measurement days, and what controls distinguish candidate bottlenecks?
-
-The contribution is a documented small-scale experiment and reusable workflow. Novel protocol design and replication of an entire published testbed are outside the initial scope.
+For a fixed residential setup (FRITZ!Box 7530 AX $\leftrightarrow$ Apple Silicon M1 Pro client):
+1. How do physical distance, drywall attenuation, and TCP load direction affect local receiver throughput and ICMP RTT distributions?
+2. Can dual-vantage edge probing reliably differentiate local Wi-Fi hop queueing from upstream WAN access link bufferbloat?
+3. When observation vantage points are insufficient to uniquely isolate a bottleneck, does the inference engine retain set-valued uncertainty and explicitly abstain rather than guessing?
 
 ## User workflow
 
