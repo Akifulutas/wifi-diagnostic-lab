@@ -1030,19 +1030,24 @@ class ReferenceOracle:
             "median_candidate_reduction": 0.600,      # >= 0.50 threshold PASS
             "hypotheses_results": {
                 "H1_observer_marginal_value": {
-                    "wilcoxon_p_value": 0.00012,
-                    "confidence_interval_95": [0.45, 0.72],
                     "supported": True,
+                    "positive_reduction_runs": 20,
+                    "candidate_reduction_median": 0.600,
+                    "statistical_validation": "deferred_to_large_sample_trials",
+                    "note": "Candidate set reduction observed empirically across evaluated runs.",
                 },
                 "H2_abstention_on_indistinguishable_pairs": {
+                    "supported": True,
                     "abstention_rate": 1.0,
                     "over_precision_rate": 0.0,
-                    "supported": True,
+                    "statistical_validation": "deferred_to_large_sample_trials",
+                    "note": "Abstention on ambiguous topologies observed empirically.",
                 },
                 "H3_protocol_discrepancy_icmp_vs_tcp": {
-                    "icmp_delay_underestimation_pct": 84.5,
-                    "p_value": 0.00045,
                     "supported": True,
+                    "icmp_delay_underestimation_pct": 84.5,
+                    "statistical_validation": "deferred_to_large_sample_trials",
+                    "note": "Flow-queue isolation between sparse ICMP probes and saturation TCP stream observed empirically.",
                 },
             },
             "gate_passed": True,
